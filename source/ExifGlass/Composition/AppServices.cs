@@ -16,6 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+using System.Net.Http;
 using ExifGlass.Core.Services;
 using ExifGlass.Services;
 using ExifGlass.ViewModels;
@@ -28,12 +29,15 @@ namespace ExifGlass.Composition;
 /// </summary>
 public sealed class AppServices : IDisposable
 {
+    private readonly HttpClient _httpClient;
+
     public ISettingsService Settings { get; }
     public IExifToolPathResolver ExifToolPathResolver { get; }
     public IProcessRunner ProcessRunner { get; }
     public IExifToolService ExifToolService { get; }
     public IExportService ExportService { get; }
     public IThemeService ThemeService { get; }
+    public IUpdateService UpdateService { get; }
     public IDialogService Dialogs { get; }
 
     public AppServices()
@@ -44,7 +48,9 @@ public sealed class AppServices : IDisposable
         ExifToolService = new ExifToolService(ExifToolPathResolver, ProcessRunner, Settings);
         ExportService = new ExportService();
         ThemeService = new ThemeService();
-        Dialogs = new DialogService(Settings, ExifToolPathResolver, ExportService, ThemeService);
+        _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+        UpdateService = new UpdateService(_httpClient, Settings);
+        Dialogs = new DialogService(Settings, ExifToolPathResolver, ExportService, ThemeService, UpdateService);
     }
 
     /// <summary>
@@ -56,5 +62,6 @@ public sealed class AppServices : IDisposable
     public void Dispose()
     {
         ExifToolService.Dispose();
+        _httpClient.Dispose();
     }
 }

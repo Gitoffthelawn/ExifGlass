@@ -18,7 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 namespace ExifGlass.Core.Services;
 
-/// <summary>Buffered result of running an external process.</summary>
+/// <summary>
+/// Buffered result of running an external process.
+/// </summary>
 /// <param name="ExitCode">Process exit code.</param>
 /// <param name="StandardOutput">Captured stdout.</param>
 /// <param name="StandardError">Captured stderr.</param>

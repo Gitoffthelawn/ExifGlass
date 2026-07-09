@@ -16,15 +16,18 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+using System.Reflection;
+
 namespace ExifGlass.Helpers;
 
 /// <summary>
-/// Static application identity used by the About window and (later) update checks.
+/// Static application identity used by the About window and update checks.
 /// </summary>
 public static class AppInfo
 {
     /// <summary>
-    /// The running assembly version as <c>Major.Minor.Build</c>.
+    /// The running build version, used for display and for the update comparison.
+    /// Prefers the assembly informational version, stripped of any build metadata.
     /// </summary>
     public static string Version { get; } = ResolveVersion();
 
@@ -45,7 +48,22 @@ public static class AppInfo
 
     private static string ResolveVersion()
     {
-        var version = typeof(AppInfo).Assembly.GetName().Version;
+        var assembly = typeof(AppInfo).Assembly;
+
+        // Both sources below read *embedded managed assembly metadata*, so they work identically
+        // on Windows, macOS and Linux — and inside single-file / NativeAOT bundles. We deliberately
+        // avoid Assembly.Location + FileVersionInfo: Location is empty in single-file/AOT builds,
+        // and Win32 file-version resources don't exist in a Linux ELF or macOS Mach-O host.
+        var informational = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        if (!string.IsNullOrWhiteSpace(informational))
+        {
+            // Defensive trim of any "+<commit>" suffix (disabled in the csproj, but harmless).
+            var plus = informational.IndexOf('+');
+            return plus >= 0 ? informational[..plus] : informational;
+        }
+
+        // Fallback: the assembly version is always embedded in the image metadata.
+        var version = assembly.GetName().Version;
         return version is null
             ? "1.0.0"
             : $"{version.Major}.{version.Minor}.{version.Build}";

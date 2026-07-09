@@ -42,6 +42,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty] public partial int SelectedThemeIndex { get; set; }
     [ObservableProperty] public partial bool AlwaysOnTop { get; set; }
+    [ObservableProperty] public partial bool CheckForUpdates { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CommandPreview))]
@@ -78,6 +79,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         var cfg = settings.Config;
         SelectedThemeIndex = (int)cfg.Theme;
         AlwaysOnTop = cfg.AlwaysOnTop;
+        CheckForUpdates = cfg.CheckForUpdates;
         ExifToolPath = cfg.ExifToolPath;
         ExifToolArguments = cfg.ExifToolArguments;
     }
@@ -97,6 +99,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         var cfg = _settings.Config;
         cfg.Theme = (ThemeMode)SelectedThemeIndex;
         cfg.AlwaysOnTop = AlwaysOnTop;
+        cfg.CheckForUpdates = CheckForUpdates;
         cfg.ExifToolPath = ExifToolPath.Trim();
         cfg.ExifToolArguments = ExifToolArguments.Trim();
 

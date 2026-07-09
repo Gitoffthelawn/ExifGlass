@@ -36,9 +36,14 @@
                 </ComboBox>
 
                 <CheckBox
-                    Margin="0,0,0,8"
+                    Margin="0,0,0,4"
                     Content="Keep window always on top"
                     IsChecked="{Binding AlwaysOnTop}" />
+
+                <CheckBox
+                    Margin="0,0,0,8"
+                    Content="Check for updates on startup"
+                    IsChecked="{Binding CheckForUpdates}" />
 
                 <TextBlock
                     Margin="0,12,0,4"

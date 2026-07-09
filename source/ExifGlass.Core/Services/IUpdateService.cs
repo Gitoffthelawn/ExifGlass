@@ -16,26 +16,21 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-using System.Text.Json.Serialization;
 using ExifGlass.Core.Models;
 
 namespace ExifGlass.Core.Services;
 
 /// <summary>
-/// Source-generated <see cref="System.Text.Json.Serialization.JsonSerializerContext"/> for
-/// all persisted/serialized types. Using the generated metadata keeps serialization
-/// reflection-free and AOT-safe — never call the reflection-based
-/// <c>JsonSerializer</c> overloads.
+/// Notify-only update checker: fetches the release feed and compares it to the running build.
+/// Never downloads or replaces the binary — the UI opens the release page instead.
 /// </summary>
-[JsonSourceGenerationOptions(
-    WriteIndented = true,
-    UseStringEnumConverter = true,
-    PropertyNameCaseInsensitive = true,
-    DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
-[JsonSerializable(typeof(AppConfig))]
-[JsonSerializable(typeof(List<ExifTagItem>))]
-[JsonSerializable(typeof(ExifTagItem))]
-[JsonSerializable(typeof(UpdateInfo))]
-public partial class AppJsonContext : JsonSerializerContext
+public interface IUpdateService
 {
+    /// <summary>
+    /// Checks for a newer release. When <paramref name="force"/> is <c>false</c> the check is
+    /// gated by <see cref="AppConfig.CheckForUpdates"/> and the throttle window and may report
+    /// <see cref="UpdateCheckResult.Skipped"/>; when <c>true</c> it always runs (e.g. the
+    /// About dialog's button). Expected failures surface in the result, not as exceptions.
+    /// </summary>
+    Task<UpdateCheckResult> CheckAsync(string currentVersion, bool force, CancellationToken cancellationToken = default);
 }

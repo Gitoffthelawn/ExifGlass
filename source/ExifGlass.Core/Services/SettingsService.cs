@@ -16,9 +16,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-using System.Text.Json;
 using ExifGlass.Core.Helpers;
 using ExifGlass.Core.Models;
+using System.Text.Json;
 
 namespace ExifGlass.Core.Services;
 
@@ -65,56 +65,73 @@ public sealed class SettingsService : ISettingsService
 
     public void ApplyOverrides(IReadOnlyDictionary<string, string> overrides)
     {
+        // Keys mirror the config property names via nameof (rename-safe, no raw strings) and
+        // match case-insensitively. Window keys are composed from the property path, e.g.
+        // nameof(Window) + nameof(Width) => "WindowWidth".
         foreach (var (key, value) in overrides)
         {
-            switch (key.ToLowerInvariant())
+            if (Matches(key, nameof(AppConfig.Theme)))
             {
-                case "theme":
-                    if (TryParseTheme(value, out var theme)) Config.Theme = theme;
-                    break;
-                case "alwaysontop":
-                    if (TryParseBool(value, out var aot)) Config.AlwaysOnTop = aot;
-                    break;
-                case "exiftoolpath":
-                    Config.ExifToolPath = value;
-                    break;
-                case "exiftoolarguments":
-                    Config.ExifToolArguments = value;
-                    break;
-                case "showcommandpreview":
-                    if (TryParseBool(value, out var scp)) Config.ShowCommandPreview = scp;
-                    break;
-                case "showindex":
-                    if (TryParseBool(value, out var si)) Config.ShowIndex = si;
-                    break;
-                case "showtagid":
-                    if (TryParseBool(value, out var sti)) Config.ShowTagId = sti;
-                    break;
-                case "showtagname":
-                    if (TryParseBool(value, out var stn)) Config.ShowTagName = stn;
-                    break;
-                case "showvalue":
-                    if (TryParseBool(value, out var sv)) Config.ShowValue = sv;
-                    break;
-                case "checkforupdates":
-                    if (TryParseBool(value, out var cfu)) Config.CheckForUpdates = cfu;
-                    break;
-                case "windowx":
-                    if (int.TryParse(value, out var wx)) Config.Window.X = wx;
-                    break;
-                case "windowy":
-                    if (int.TryParse(value, out var wy)) Config.Window.Y = wy;
-                    break;
-                case "windowwidth":
-                    if (int.TryParse(value, out var ww)) Config.Window.Width = ww;
-                    break;
-                case "windowheight":
-                    if (int.TryParse(value, out var wh)) Config.Window.Height = wh;
-                    break;
-                // Unknown keys are ignored.
+                if (TryParseTheme(value, out var theme)) Config.Theme = theme;
             }
+            else if (Matches(key, nameof(AppConfig.AlwaysOnTop)))
+            {
+                if (TryParseBool(value, out var alwaysOnTop)) Config.AlwaysOnTop = alwaysOnTop;
+            }
+            else if (Matches(key, nameof(AppConfig.ExifToolPath)))
+            {
+                Config.ExifToolPath = value;
+            }
+            else if (Matches(key, nameof(AppConfig.ExifToolArguments)))
+            {
+                Config.ExifToolArguments = value;
+            }
+            else if (Matches(key, nameof(AppConfig.ShowCommandPreview)))
+            {
+                if (TryParseBool(value, out var showPreview)) Config.ShowCommandPreview = showPreview;
+            }
+            else if (Matches(key, nameof(AppConfig.ShowIndex)))
+            {
+                if (TryParseBool(value, out var showIndex)) Config.ShowIndex = showIndex;
+            }
+            else if (Matches(key, nameof(AppConfig.ShowTagId)))
+            {
+                if (TryParseBool(value, out var showTagId)) Config.ShowTagId = showTagId;
+            }
+            else if (Matches(key, nameof(AppConfig.ShowTagName)))
+            {
+                if (TryParseBool(value, out var showTagName)) Config.ShowTagName = showTagName;
+            }
+            else if (Matches(key, nameof(AppConfig.ShowValue)))
+            {
+                if (TryParseBool(value, out var showValue)) Config.ShowValue = showValue;
+            }
+            else if (Matches(key, nameof(AppConfig.CheckForUpdates)))
+            {
+                if (TryParseBool(value, out var checkForUpdates)) Config.CheckForUpdates = checkForUpdates;
+            }
+            else if (Matches(key, nameof(AppConfig.Window) + nameof(WindowBounds.X)))
+            {
+                if (int.TryParse(value, out var windowX)) Config.Window.X = windowX;
+            }
+            else if (Matches(key, nameof(AppConfig.Window) + nameof(WindowBounds.Y)))
+            {
+                if (int.TryParse(value, out var windowY)) Config.Window.Y = windowY;
+            }
+            else if (Matches(key, nameof(AppConfig.Window) + nameof(WindowBounds.Width)))
+            {
+                if (int.TryParse(value, out var windowWidth)) Config.Window.Width = windowWidth;
+            }
+            else if (Matches(key, nameof(AppConfig.Window) + nameof(WindowBounds.Height)))
+            {
+                if (int.TryParse(value, out var windowHeight)) Config.Window.Height = windowHeight;
+            }
+            // Unknown keys are ignored.
         }
     }
+
+    private static bool Matches(string key, string name)
+        => string.Equals(key, name, StringComparison.OrdinalIgnoreCase);
 
     private static bool TryParseBool(string value, out bool result)
     {

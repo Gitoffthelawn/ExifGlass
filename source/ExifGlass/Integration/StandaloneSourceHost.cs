@@ -43,7 +43,9 @@ public sealed class StandaloneSourceHost(string? initialFilePath) : IImageSource
         }
     }
 
-    /// <summary>Requests a file load; safe to call from any thread.</summary>
+    /// <summary>
+    /// Requests a file load; safe to call from any thread.
+    /// </summary>
     public void RequestFile(string? filePath, bool activate = true)
     {
         if (Dispatcher.UIThread.CheckAccess())

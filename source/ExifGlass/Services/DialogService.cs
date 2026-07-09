@@ -21,6 +21,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
 using ExifGlass.Core.Models;
 using ExifGlass.Core.Services;
+using ExifGlass.Helpers;
 using ExifGlass.ViewModels;
 using ExifGlass.Views;
 
@@ -57,13 +58,26 @@ public interface IDialogService
     /// </summary>
     Task<bool> ShowSettingsDialogAsync();
     Task ShowAboutDialogAsync();
+
+    /// <summary>
+    /// Runs a user-initiated update check (ignores the throttle) and shows the outcome:
+    /// the update window, an "up to date" message, or a failure message.
+    /// </summary>
+    Task CheckForUpdatesInteractiveAsync();
+
+    /// <summary>
+    /// Runs a silent, throttled startup update check and only shows the update window when a
+    /// newer release is available. Never surfaces errors or "up to date".
+    /// </summary>
+    Task CheckForUpdatesOnStartupAsync();
 }
 
 public sealed class DialogService(
     ISettingsService settings,
     IExifToolPathResolver resolver,
     IExportService export,
-    IThemeService theme) : IDialogService
+    IThemeService theme,
+    IUpdateService update) : IDialogService
 {
     public Window? Owner { get; set; }
 
@@ -207,6 +221,53 @@ public sealed class DialogService(
 
         var vm = new AboutViewModel(this);
         var window = new AboutWindow { DataContext = vm, Topmost = owner.Topmost };
+        vm.CloseRequested += window.Close;
+        await window.ShowDialog(owner);
+    }
+
+    public async Task CheckForUpdatesInteractiveAsync()
+    {
+        var result = await update.CheckAsync(AppInfo.Version, force: true);
+
+        if (result.UpdateAvailable && result.Info is { } info)
+        {
+            await ShowUpdateDialogAsync(info);
+        }
+        else if (result.ErrorMessage is { } error)
+        {
+            await ShowMessageAsync("Update check failed", error, "Check for update");
+        }
+        else
+        {
+            await ShowMessageAsync(
+                "You're up to date",
+                $"ExifGlass {AppInfo.Version} is the latest version.",
+                "Check for update");
+        }
+    }
+
+    public async Task CheckForUpdatesOnStartupAsync()
+    {
+        try
+        {
+            var result = await update.CheckAsync(AppInfo.Version, force: false);
+            if (result.UpdateAvailable && result.Info is { } info)
+            {
+                await ShowUpdateDialogAsync(info);
+            }
+        }
+        catch
+        {
+            // A startup check is best-effort and must never disrupt launch.
+        }
+    }
+
+    private async Task ShowUpdateDialogAsync(UpdateInfo info)
+    {
+        if (Owner is not { } owner) return;
+
+        var vm = new UpdateViewModel(info, AppInfo.Version, this);
+        var window = new UpdateWindow { DataContext = vm, Topmost = owner.Topmost };
         vm.CloseRequested += window.Close;
         await window.ShowDialog(owner);
     }

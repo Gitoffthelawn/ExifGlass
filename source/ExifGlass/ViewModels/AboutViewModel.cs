@@ -47,7 +47,7 @@ public sealed partial class AboutViewModel(IDialogService dialogs) : ViewModelBa
     private Task OpenStoreAsync() => dialogs.OpenUrlAsync(AppInfo.StoreUrl);
 
     [RelayCommand]
-    private Task CheckForUpdateAsync() => dialogs.OpenUrlAsync(AppInfo.ReleasesUrl);
+    private Task CheckForUpdateAsync() => dialogs.CheckForUpdatesInteractiveAsync();
 
     [RelayCommand]
     private void Close() => CloseRequested?.Invoke();

@@ -30,7 +30,9 @@ public static class ExifToolCommand
     /// </summary>
     public static readonly string[] BaseFlags = ["-fast", "-G", "-t", "-m", "-q", "-H"];
 
-    /// <summary>Builds the full argv array for reading <paramref name="filePath"/>.</summary>
+    /// <summary>
+    /// Builds the full argv array for reading <paramref name="filePath"/>.
+    /// </summary>
     public static IReadOnlyList<string> BuildArgs(string filePath, string? extraArguments)
     {
         var args = new List<string>(BaseFlags.Length + 6);

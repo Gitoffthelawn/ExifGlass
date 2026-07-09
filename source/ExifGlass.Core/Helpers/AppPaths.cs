@@ -23,7 +23,9 @@ namespace ExifGlass.Core.Helpers;
 /// </summary>
 public static class AppPaths
 {
-    /// <summary>Product name used for the per-user config directory.</summary>
+    /// <summary>
+    /// Product name used for the per-user config directory.
+    /// </summary>
     public const string AppName = "ExifGlass";
 
     private const string ConfigFileName = "exifglass.config.json";

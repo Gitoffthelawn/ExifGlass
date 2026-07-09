@@ -22,7 +22,9 @@ using ExifGlass.Core.Models;
 
 namespace ExifGlass.Services;
 
-/// <summary>Applies the configured <see cref="ThemeMode"/> to the running application.</summary>
+/// <summary>
+/// Applies the configured <see cref="ThemeMode"/> to the running application.
+/// </summary>
 public interface IThemeService
 {
     void Apply(ThemeMode mode);

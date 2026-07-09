@@ -86,12 +86,32 @@ public partial class App : Application
 
             // Emit the initial file / connect the pipe. The UI thread is never blocked by pipe IO.
             _host.Start();
+
+            // Notify-only startup update check: standalone only (an integrated tool must not pop a
+            // modal over ImageGlass), gated by config + a 5-day throttle, and best-effort so a
+            // network failure never disrupts launch. Deferred to first open so the owner exists.
+            if (options.Mode == AppMode.Standalone)
+            {
+                window.Opened += OnMainWindowOpenedForUpdateCheck;
+            }
         }
 
         base.OnFrameworkInitializationCompleted();
     }
 
-    /// <summary>Brings the main window to the foreground (used on an ImageGlass hotkey re-invoke).</summary>
+    private void OnMainWindowOpenedForUpdateCheck(object? sender, EventArgs e)
+    {
+        // Run once.
+        if (sender is Window window)
+        {
+            window.Opened -= OnMainWindowOpenedForUpdateCheck;
+        }
+        _ = _services?.Dialogs.CheckForUpdatesOnStartupAsync();
+    }
+
+    /// <summary>
+    /// Brings the main window to the foreground (used on an ImageGlass hotkey re-invoke).
+    /// </summary>
     private static void BringToFront(Window window)
     {
         if (window.WindowState == WindowState.Minimized)

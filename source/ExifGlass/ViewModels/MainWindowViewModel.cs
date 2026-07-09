@@ -21,7 +21,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ExifGlass.Core.Models;
 using ExifGlass.Core.Services;
-using ExifGlass.Helpers;
 using ExifGlass.Integration;
 using ExifGlass.Services;
 using System.Collections.ObjectModel;
@@ -261,7 +260,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private Task CheckForUpdateAsync() => _dialogs.OpenUrlAsync(AppInfo.ReleasesUrl);
+    private Task CheckForUpdateAsync() => _dialogs.CheckForUpdatesInteractiveAsync();
 
     [RelayCommand]
     private Task OpenAboutAsync() => _dialogs.ShowAboutDialogAsync();

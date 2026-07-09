@@ -5,6 +5,16 @@
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- Product identity. Version drives AssemblyVersion/FileVersion/InformationalVersion; the
+         update check compares the feed against InformationalVersion. -->
+    <Version>2.0.0</Version>
+    <Authors>Duong Dieu Phap</Authors>
+    <Product>ExifGlass</Product>
+    <Company>Duong Dieu Phap</Company>
+    <Copyright>Copyright © 2023 - 2026 Duong Dieu Phap</Copyright>
+    <!-- Keep InformationalVersion clean ("2.0.0", no "+<commit>" suffix). -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 

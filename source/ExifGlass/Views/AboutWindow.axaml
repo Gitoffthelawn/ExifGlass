@@ -52,7 +52,7 @@
 
             <TextBlock
                 Margin="0,14,0,0"
-                Text="Copyright © 2023 – 2025 by Dương Diệu Pháp. All rights reserved."
+                Text="Copyright © 2023 – 2026 by Dương Diệu Pháp. All rights reserved."
                 TextWrapping="Wrap" />
 
             <StackPanel
