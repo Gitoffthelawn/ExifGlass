@@ -13,12 +13,16 @@ public interface ISettingsService
 
     /// <summary>
     /// Loads configuration from disk, tolerating a missing or corrupt file
-    /// (falls back to defaults).
+    /// (falls back to defaults). Synchronous: the config is tiny and both callers
+    /// (startup and close) need it done before proceeding.
     /// </summary>
-    Task LoadAsync(CancellationToken cancellationToken = default);
+    void Load();
 
-    /// <summary>Writes the current configuration to disk.</summary>
-    Task SaveAsync(CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Writes the current configuration to disk (atomic temp-file swap). Synchronous
+    /// so it is safe to call while blocking the UI thread on window close.
+    /// </summary>
+    void Save();
 
     /// <summary>
     /// Applies CLI <c>/Key=Value</c> overrides on top of the loaded configuration

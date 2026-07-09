@@ -15,6 +15,8 @@ namespace ExifGlass.Core.Services;
     PropertyNameCaseInsensitive = true,
     DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
 [JsonSerializable(typeof(AppConfig))]
+[JsonSerializable(typeof(List<ExifTagItem>))]
+[JsonSerializable(typeof(ExifTagItem))]
 public partial class AppJsonContext : JsonSerializerContext
 {
 }

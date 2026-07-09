@@ -2,11 +2,10 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Styling;
 using ExifGlass.Composition;
 using ExifGlass.Core.Helpers;
 using ExifGlass.Core.Models;
-using ExifGlass.ViewModels;
+using ExifGlass.Views;
 
 namespace ExifGlass;
 
@@ -28,17 +27,20 @@ public partial class App : Application
             _services = new AppServices();
 
             // Layered load: defaults -> file -> CLI overrides. Done before the view model
-            // is built so config-derived state is correct on first render. The file is tiny
-            // and this runs before any UI is shown; ConfigureAwait(false) keeps it deadlock-free.
-            _services.Settings.LoadAsync().GetAwaiter().GetResult();
+            // is built so config-derived state is correct on first render. Synchronous:
+            // the file is tiny and this must complete before any UI is shown.
+            _services.Settings.Load();
             _services.Settings.ApplyOverrides(options.ConfigOverrides);
 
             var config = _services.Settings.Config;
-            ApplyTheme(config.Theme);
+            _services.ThemeService.Apply(config.Theme);
 
             var vm = _services.CreateMainWindowViewModel();
             var window = new MainWindow { DataContext = vm };
             RestoreWindow(window, config);
+
+            // The dialog service reaches pickers/clipboard/launcher through this window.
+            _services.Dialogs.Owner = window;
 
             desktop.MainWindow = window;
             desktop.ShutdownRequested += (_, _) =>
@@ -55,17 +57,6 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    private static void ApplyTheme(ThemeMode mode)
-    {
-        if (Current is null) return;
-        Current.RequestedThemeVariant = mode switch
-        {
-            ThemeMode.Dark => ThemeVariant.Dark,
-            ThemeMode.Light => ThemeVariant.Light,
-            _ => ThemeVariant.Default,
-        };
     }
 
     private static void RestoreWindow(Window window, AppConfig config)

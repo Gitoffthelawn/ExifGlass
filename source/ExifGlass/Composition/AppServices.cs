@@ -1,4 +1,5 @@
 using ExifGlass.Core.Services;
+using ExifGlass.Services;
 using ExifGlass.ViewModels;
 
 namespace ExifGlass.Composition;
@@ -13,6 +14,9 @@ public sealed class AppServices : IDisposable
     public IExifToolPathResolver ExifToolPathResolver { get; }
     public IProcessRunner ProcessRunner { get; }
     public IExifToolService ExifToolService { get; }
+    public IExportService ExportService { get; }
+    public IThemeService ThemeService { get; }
+    public IDialogService Dialogs { get; }
 
     public AppServices()
     {
@@ -20,11 +24,14 @@ public sealed class AppServices : IDisposable
         ExifToolPathResolver = new ExifToolPathResolver();
         ProcessRunner = new CliWrapProcessRunner();
         ExifToolService = new ExifToolService(ExifToolPathResolver, ProcessRunner, Settings);
+        ExportService = new ExportService();
+        ThemeService = new ThemeService();
+        Dialogs = new DialogService(Settings, ExifToolPathResolver, ExportService, ThemeService);
     }
 
     /// <summary>Creates the main window's view model bound to the shared services.</summary>
     public MainWindowViewModel CreateMainWindowViewModel()
-        => new(ExifToolService, Settings);
+        => new(ExifToolService, Settings, Dialogs);
 
     public void Dispose()
     {

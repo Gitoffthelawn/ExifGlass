@@ -95,6 +95,97 @@ public sealed class ExifToolService(
         return new ExifReadResult(tags, preview, true, null);
     }
 
+    public async Task<string?> ExtractBinaryTagAsync(
+        string sourceFilePath,
+        string tagName,
+        string destinationPath,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(sourceFilePath) || string.IsNullOrWhiteSpace(tagName))
+        {
+            return "There is no binary data to extract.";
+        }
+
+        var cfg = settings.Config;
+        var exe = resolver.Resolve(cfg.ExifToolPath);
+
+        // Same Windows-only ANSI-path workaround as reads: ExifTool cannot open a source
+        // path with codepoints above the ANSI range.
+        var readPath = sourceFilePath;
+        if (PlatformInfo.NeedsAnsiPathWorkaround(sourceFilePath)
+            && TryCreateAnsiCopy(sourceFilePath) is { } ansiCopy)
+        {
+            readPath = ansiCopy;
+        }
+
+        // ExifTool command names have no spaces (e.g. "Thumbnail Image" -> ThumbnailImage).
+        var tagArg = "-" + tagName.Replace(" ", "");
+
+        string extractDir;
+        try
+        {
+            AppPaths.EnsureTempDir();
+            extractDir = Path.Combine(AppPaths.TempDir, "extract-" + Path.GetRandomFileName());
+            Directory.CreateDirectory(extractDir);
+        }
+        catch (Exception ex)
+        {
+            return $"Could not create a temporary folder for extraction: {ex.Message}";
+        }
+
+        try
+        {
+            // -w! writes to "<extractDir>/<sourceBaseName><suffix>"; %f is the input base name.
+            var suffix = "_extracted";
+            var outFormat = Path.Combine(extractDir, "%f" + suffix);
+            string[] args = [tagArg, "-b", "-w!", outFormat, readPath];
+
+            ProcessResult result;
+            try
+            {
+                result = await runner.RunAsync(exe, args, cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex) when (IsExecutableMissing(ex))
+            {
+                return MissingToolMessage(exe);
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+
+            var produced = Path.Combine(extractDir, Path.GetFileNameWithoutExtension(readPath) + suffix);
+            if (!File.Exists(produced))
+            {
+                var message = result.StandardError?.Trim();
+                return string.IsNullOrEmpty(message)
+                    ? "ExifTool produced no data for this tag."
+                    : message;
+            }
+
+            var destDir = Path.GetDirectoryName(destinationPath);
+            if (!string.IsNullOrEmpty(destDir)) Directory.CreateDirectory(destDir);
+            File.Move(produced, destinationPath, overwrite: true);
+            return null;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return ex.Message;
+        }
+        finally
+        {
+            try { Directory.Delete(extractDir, recursive: true); } catch { /* best-effort */ }
+        }
+    }
+
     public async Task<ExifToolStatus> ValidateAsync(CancellationToken cancellationToken = default)
     {
         var exe = resolver.Resolve(settings.Config.ExifToolPath);

@@ -1,0 +1,101 @@
+<views:StyledWindow xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:views="using:ExifGlass.Views"
+                    xmlns:vm="using:ExifGlass.ViewModels"
+                    mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="520"
+                    x:Class="ExifGlass.Views.AboutWindow"
+                    x:DataType="vm:AboutViewModel"
+                    Title="About"
+                    Width="440"
+                    CanResize="False"
+                    SizeToContent="Height"
+                    WindowStartupLocation="CenterOwner"
+                    Icon="/Assets/exifglass_icon_512.ico">
+
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Escape" Command="{Binding CloseCommand}" />
+    </Window.KeyBindings>
+
+    <Grid RowDefinitions="*,Auto">
+        <StackPanel Grid.Row="0" Margin="24,24,24,12" Spacing="6">
+
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <Image Width="72" Height="72"
+                       VerticalAlignment="Top"
+                       Source="/Assets/exifglass_icon_512.ico" />
+                <StackPanel Spacing="2" VerticalAlignment="Center">
+                    <TextBlock FontSize="24" FontWeight="SemiBold"
+                               Foreground="{DynamicResource SystemAccentColor}"
+                               Text="ExifGlass" />
+                    <TextBlock FontSize="15" Text="EXIF metadata viewer" />
+                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+                        <TextBlock FontWeight="SemiBold" Text="Version" />
+                        <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Margin="0,14,0,0" TextWrapping="Wrap"
+                       Text="Copyright © 2023 – 2025 by Dương Diệu Pháp. All rights reserved." />
+
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+                <TextBlock Text="Website:" />
+                <Button Padding="0" Background="Transparent" BorderThickness="0"
+                        Cursor="Hand"
+                        Command="{Binding OpenWebsiteCommand}">
+                    <TextBlock Foreground="{DynamicResource SystemAccentColor}"
+                               TextDecorations="Underline"
+                               Text="{Binding WebsiteUrl}" />
+                </Button>
+            </StackPanel>
+
+            <Button Margin="0,12,0,0"
+                    Command="{Binding OpenStoreCommand}"
+                    Content="Get ExifGlass on the Microsoft Store" />
+
+            <Expander Margin="0,14,0,0" Header="Credits" HorizontalAlignment="Stretch">
+                <ScrollViewer MaxHeight="150" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="4,8" Spacing="8">
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" Text="Avalonia" />
+                            <TextBlock Text="MIT license. © The AvaloniaUI project." />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" Text="ProDataGrid" />
+                            <TextBlock Text="MIT license." />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" Text="CommunityToolkit.Mvvm" />
+                            <TextBlock Text="MIT license. © .NET Foundation and Contributors." />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" Text="CliWrap" />
+                            <TextBlock Text="MIT license. © Oleksii Holub." />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold" Text="ExifTool" />
+                            <TextBlock Text="Artistic license. © Phil Harvey." />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Expander>
+
+        </StackPanel>
+
+        <Border Grid.Row="1" Padding="24,12">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+                <Button MinWidth="120"
+                        HorizontalContentAlignment="Center"
+                        Command="{Binding CheckForUpdateCommand}"
+                        Content="Check for update" />
+                <Button MinWidth="88"
+                        Classes="accent"
+                        HorizontalContentAlignment="Center"
+                        Command="{Binding CloseCommand}"
+                        Content="Close" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</views:StyledWindow>

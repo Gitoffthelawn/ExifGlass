@@ -41,6 +41,11 @@
     <ProjectReference Include="..\ExifGlass.Core\ExifGlass.Core.csproj" />
   </ItemGroup>
 
+  <!-- Brand icons embedded as Avalonia resources (window/About icons). -->
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\*.ico" />
+  </ItemGroup>
+
   <!-- Bundle ExifTool next to the app on Windows. -->
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
     <None Include="Assets\exiftool\win\exiftool.exe" Condition="Exists('Assets\exiftool\win\exiftool.exe')">

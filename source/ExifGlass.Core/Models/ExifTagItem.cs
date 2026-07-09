@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 
 namespace ExifGlass.Core.Models;
 
@@ -31,6 +32,8 @@ public sealed record ExifTagItem
     /// <summary>
     /// <c>true</c> when the value is binary data that ExifTool can extract with the <c>-b</c> option.
     /// </summary>
+    /// <remarks>Derived, UI-only; excluded from the JSON export which carries just the metadata fields.</remarks>
+    [JsonIgnore]
     public bool CanExtractBinary
         => TagValue.Contains(", use -b option to extract", StringComparison.Ordinal);
 }

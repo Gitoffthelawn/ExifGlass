@@ -5,27 +5,43 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using ExifGlass.Core.Models;
 using ExifGlass.Core.Services;
+using ExifGlass.Helpers;
 using ExifGlass.Integration;
+using ExifGlass.Services;
 
 namespace ExifGlass.ViewModels;
 
 /// <summary>
 /// Drives the main window: owns the bound metadata collection and its grouped view,
-/// the footer command preview, error state, and the shared file-load pipeline.
+/// the footer command preview, error state, selection/column state, and the commands
+/// behind the footer buttons, keyboard accelerators, and context menu.
 /// </summary>
 public sealed partial class MainWindowViewModel : ViewModelBase
 {
     private readonly IExifToolService _exifTool;
     private readonly ISettingsService _settings;
+    private readonly IDialogService _dialogs;
 
     // CTS swap: each load cancels the previous one so a newer file always wins.
     private CancellationTokenSource? _cts;
+
+    // Re-entrancy guard for the "keep at least one column visible" rule.
+    private bool _revertingColumn;
+
+    /// <summary>Raised when the user asks to quit (Menu → Exit / Esc).</summary>
+    public event Action? ExitRequested;
 
     /// <summary>Live rows; the grouped view observes this collection.</summary>
     public ObservableCollection<ExifTagItem> Items { get; } = [];
 
     /// <summary>Grouped, reflection-free projection bound by the grid.</summary>
     public DataGridCollectionView GroupedItems { get; }
+
+    /// <summary>
+    /// Tag of the grid's current column ("Index" / "TagId" / "TagName" / "Value"), mirrored
+    /// from the view so <see cref="CopyCellCommand"/> copies the right cell. Defaults to the value column.
+    /// </summary>
+    public string CurrentColumnKey { get; set; } = "Value";
 
     [ObservableProperty]
     private string _title = "ExifGlass";
@@ -46,6 +62,17 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(HasError))]
     private string? _errorMessage;
 
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(CopyCellCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExtractBinaryCommand))]
+    private ExifTagItem? _selectedTag;
+
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ExportTextCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportCsvCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportJsonCommand))]
+    private bool _hasItems;
+
     // Column visibility, seeded from config; code-behind mirrors these onto the columns.
     [ObservableProperty] private bool _showIndex = true;
     [ObservableProperty] private bool _showTagId = true;
@@ -54,10 +81,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase
 
     public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 
-    public MainWindowViewModel(IExifToolService exifTool, ISettingsService settings)
+    public MainWindowViewModel(IExifToolService exifTool, ISettingsService settings, IDialogService dialogs)
     {
         _exifTool = exifTool;
         _settings = settings;
+        _dialogs = dialogs;
 
         GroupedItems = BuildGroupedView(Items);
 
@@ -82,10 +110,12 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         var token = cts.Token;
 
         CurrentFilePath = path;
+        SelectedTag = null;
 
         if (string.IsNullOrEmpty(path))
         {
             Items.Clear();
+            HasItems = false;
             CommandPreview = "";
             ErrorMessage = null;
             Title = "ExifGlass";
@@ -111,6 +141,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                 {
                     Items.Add(tag);
                 }
+                HasItems = Items.Count > 0;
                 Title = $"{Path.GetFileName(path)} — ExifGlass";
             }
             else
@@ -133,8 +164,171 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         }
     }
 
+    // Commands
+    #region Commands
+
+    [RelayCommand]
+    private async Task OpenFileAsync()
+    {
+        if (await _dialogs.PickImageFileAsync() is { } path && !string.IsNullOrEmpty(path))
+        {
+            await LoadFileAsync(path);
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanCopy))]
+    private Task CopyCellAsync()
+    {
+        if (SelectedTag is not { } tag) return Task.CompletedTask;
+
+        var value = CurrentColumnKey switch
+        {
+            "Index" => tag.Index.ToString(),
+            "TagId" => tag.TagId,
+            "TagName" => tag.TagName,
+            _ => tag.TagValue,
+        };
+        return _dialogs.CopyTextAsync(value);
+    }
+
+    private bool CanCopy => SelectedTag is not null;
+
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private Task ExportTextAsync() => ExportAsync(ExportFileType.Text);
+
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private Task ExportCsvAsync() => ExportAsync(ExportFileType.Csv);
+
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private Task ExportJsonAsync() => ExportAsync(ExportFileType.Json);
+
+    private bool CanExport => HasItems;
+
+    [RelayCommand(CanExecute = nameof(CanExtract))]
+    private async Task ExtractBinaryAsync()
+    {
+        if (SelectedTag is not { } tag || string.IsNullOrEmpty(CurrentFilePath)) return;
+
+        var tagNoSpace = tag.TagName.Replace(" ", "");
+        var baseName = Path.GetFileNameWithoutExtension(CurrentFilePath);
+        var destination = await _dialogs.PickBinaryDestinationAsync($"{baseName}_{tagNoSpace}.bin");
+        if (string.IsNullOrEmpty(destination)) return;
+
+        var error = await _exifTool.ExtractBinaryTagAsync(CurrentFilePath, tag.TagName, destination);
+        if (error is not null)
+        {
+            await _dialogs.ShowMessageAsync("Extraction failed", error);
+        }
+    }
+
+    private bool CanExtract => SelectedTag?.CanExtractBinary == true;
+
+    [RelayCommand]
+    private async Task OpenSettingsAsync()
+    {
+        if (await _dialogs.ShowSettingsDialogAsync())
+        {
+            ShowCommandPreview = _settings.Config.ShowCommandPreview;
+            if (!string.IsNullOrEmpty(CurrentFilePath))
+            {
+                await LoadFileAsync(CurrentFilePath);
+            }
+        }
+    }
+
+    [RelayCommand]
+    private Task CheckForUpdateAsync() => _dialogs.OpenUrlAsync(AppInfo.ReleasesUrl);
+
+    [RelayCommand]
+    private Task OpenAboutAsync() => _dialogs.ShowAboutDialogAsync();
+
+    [RelayCommand]
+    private void Exit() => ExitRequested?.Invoke();
+
     [RelayCommand]
     private void DismissError() => ErrorMessage = null;
+
+    #endregion
+
+    private async Task ExportAsync(ExportFileType type)
+    {
+        if (!HasItems) return;
+
+        var baseName = string.IsNullOrEmpty(CurrentFilePath)
+            ? "metadata"
+            : Path.GetFileNameWithoutExtension(CurrentFilePath);
+
+        // Snapshot the rows so a concurrent reload can't mutate the export mid-save.
+        await _dialogs.ExportAsync(type, [.. Items], baseName);
+    }
+
+    // Window-state persistence: the view feeds bounds here; the config is saved on close.
+    #region Window state
+
+    /// <summary>Records the window's normal-state bounds (ignored while maximized).</summary>
+    public void UpdateNormalBounds(int x, int y, int width, int height)
+    {
+        var w = _settings.Config.Window;
+        w.X = x;
+        w.Y = y;
+        w.Width = width;
+        w.Height = height;
+    }
+
+    /// <summary>Persists the final window state to disk on close.</summary>
+    public void SaveOnClose(bool maximized)
+    {
+        _settings.Config.Window.Maximized = maximized;
+        try
+        {
+            _settings.Save();
+        }
+        catch
+        {
+            // A failed save must not block shutdown.
+        }
+    }
+
+    #endregion
+
+    // Keep at least one column visible; mirror each change into the config for persistence.
+    #region Column visibility guards
+
+    partial void OnShowIndexChanged(bool value)
+    {
+        _settings.Config.ShowIndex = value;
+        RevertIfNoColumnsVisible(() => ShowIndex = true);
+    }
+
+    partial void OnShowTagIdChanged(bool value)
+    {
+        _settings.Config.ShowTagId = value;
+        RevertIfNoColumnsVisible(() => ShowTagId = true);
+    }
+
+    partial void OnShowTagNameChanged(bool value)
+    {
+        _settings.Config.ShowTagName = value;
+        RevertIfNoColumnsVisible(() => ShowTagName = true);
+    }
+
+    partial void OnShowValueChanged(bool value)
+    {
+        _settings.Config.ShowValue = value;
+        RevertIfNoColumnsVisible(() => ShowValue = true);
+    }
+
+    private void RevertIfNoColumnsVisible(Action restore)
+    {
+        if (_revertingColumn) return;
+        if (ShowIndex || ShowTagId || ShowTagName || ShowValue) return;
+
+        _revertingColumn = true;
+        restore();
+        _revertingColumn = false;
+    }
+
+    #endregion
 
     // DataGridCollectionView is [RequiresUnreferencedCode] (IL2026) because it inspects
     // items via reflection/TypeDescriptor. ExifTagItem's public members are preserved with

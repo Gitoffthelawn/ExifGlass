@@ -19,6 +19,18 @@ public interface IExifToolService : IDisposable
     /// <summary>Builds the display command line for reading <paramref name="filePath"/>.</summary>
     string BuildCommandPreview(string filePath);
 
+    /// <summary>
+    /// Extracts the binary data of <paramref name="tagName"/> from
+    /// <paramref name="sourceFilePath"/> to <paramref name="destinationPath"/> via a second
+    /// ExifTool invocation (<c>-b -w!</c>). Does not throw for expected failures.
+    /// </summary>
+    /// <returns><c>null</c> on success; otherwise a friendly, actionable error message.</returns>
+    Task<string?> ExtractBinaryTagAsync(
+        string sourceFilePath,
+        string tagName,
+        string destinationPath,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Probes the resolved ExifTool executable and reports its availability/version.</summary>
     Task<ExifToolStatus> ValidateAsync(CancellationToken cancellationToken = default);
 

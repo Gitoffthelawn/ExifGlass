@@ -12,7 +12,7 @@ public sealed class SettingsService : ISettingsService
 {
     public AppConfig Config { get; private set; } = new();
 
-    public async Task LoadAsync(CancellationToken cancellationToken = default)
+    public void Load()
     {
         try
         {
@@ -23,16 +23,8 @@ public sealed class SettingsService : ISettingsService
                 return;
             }
 
-            await using var stream = File.OpenRead(path);
-            var loaded = await JsonSerializer
-                .DeserializeAsync(stream, AppJsonContext.Default.AppConfig, cancellationToken)
-                .ConfigureAwait(false);
-
-            Config = loaded ?? new AppConfig();
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
+            var json = File.ReadAllText(path);
+            Config = JsonSerializer.Deserialize(json, AppJsonContext.Default.AppConfig) ?? new AppConfig();
         }
         catch
         {
@@ -41,19 +33,15 @@ public sealed class SettingsService : ISettingsService
         }
     }
 
-    public async Task SaveAsync(CancellationToken cancellationToken = default)
+    public void Save()
     {
         AppPaths.EnsureConfigDir();
         var path = AppPaths.ConfigFilePath;
 
         // Write to a temp file then move, so a crash can't leave a truncated config.
         var tmp = path + ".tmp";
-        await using (var stream = File.Create(tmp))
-        {
-            await JsonSerializer
-                .SerializeAsync(stream, Config, AppJsonContext.Default.AppConfig, cancellationToken)
-                .ConfigureAwait(false);
-        }
+        var json = JsonSerializer.Serialize(Config, AppJsonContext.Default.AppConfig);
+        File.WriteAllText(tmp, json);
         File.Move(tmp, path, overwrite: true);
     }
 
