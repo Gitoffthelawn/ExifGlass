@@ -29,12 +29,13 @@
         <KeyBinding Command="{Binding ExitCommand}" Gesture="Escape" />
     </Window.KeyBindings>
 
+
     <Grid RowDefinitions="Auto,*,Auto">
 
         <!--  Error banner  -->
         <Border
             Grid.Row="0"
-            Padding="12,8"
+            Padding="10"
             Background="#33FF3B30"
             BorderBrush="#FFFF3B30"
             BorderThickness="0,0,0,1"
@@ -53,138 +54,191 @@
             </Grid>
         </Border>
 
+
         <!--  Metadata grid  -->
-        <DataGrid
-            x:Name="MetadataGrid"
+        <Border
             Grid.Row="1"
-            Margin="8,8,8,0"
-            CanUserReorderColumns="False"
-            CanUserResizeColumns="True"
-            CanUserSortColumns="True"
-            ClipboardCopyMode="None"
-            GridLinesVisibility="Horizontal"
-            HeadersVisibility="Column"
-            IsReadOnly="True"
-            ItemsSource="{Binding GroupedItems}"
-            SelectionMode="Single">
-            <DataGrid.ContextMenu>
-                <ContextMenu x:DataType="vm:MainWindowViewModel">
-                    <MenuItem
-                        Command="{Binding CopyCellCommand}"
-                        Header="Copy"
-                        InputGesture="Ctrl+C" />
-                    <MenuItem
-                        Command="{Binding ExtractBinaryCommand}"
-                        Header="Extract data…"
-                        IsVisible="{Binding SelectedTag, Converter={x:Static conv:ExtractableTagConverter.Instance}}" />
-                    <Separator />
-                    <MenuItem Header="Columns">
-                        <MenuItem
-                            Header="Index"
-                            IsChecked="{Binding ShowIndex, Mode=TwoWay}"
-                            ToggleType="CheckBox" />
-                        <MenuItem
-                            Header="Tag ID"
-                            IsChecked="{Binding ShowTagId, Mode=TwoWay}"
-                            ToggleType="CheckBox" />
-                        <MenuItem
-                            Header="Tag Name"
-                            IsChecked="{Binding ShowTagName, Mode=TwoWay}"
-                            ToggleType="CheckBox" />
-                        <MenuItem
-                            Header="Value"
-                            IsChecked="{Binding ShowValue, Mode=TwoWay}"
-                            ToggleType="CheckBox" />
-                    </MenuItem>
-                </ContextMenu>
-            </DataGrid.ContextMenu>
-            <DataGrid.Columns>
-                <!--  Template columns give explicit control over cell text wrapping (rows grow to fit).  -->
-                <DataGridTemplateColumn
-                    Width="Auto"
-                    MinWidth="40"
-                    Header="#"
-                    Tag="Index">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate DataType="models:ExifTagItem">
-                            <TextBlock
-                                Padding="8,4"
-                                VerticalAlignment="Top"
-                                Text="{CompiledBinding Index}"
-                                TextWrapping="Wrap" />
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+            Margin="10,10,10,0"
+            Background="{DynamicResource PhCardBackgroundBrush}"
+            BorderBrush="{DynamicResource PhCardBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="{DynamicResource ControlCornerRadius}">
+            <DataGrid
+                x:Name="MetadataGrid"
+                CanUserReorderColumns="False"
+                CanUserResizeColumns="True"
+                CanUserSortColumns="True"
+                ClipboardCopyMode="None"
+                CornerRadius="{DynamicResource ControlCornerRadius}"
+                GridLinesVisibility="None"
+                HeadersVisibility="Column"
+                IsReadOnly="True"
+                ItemsSource="{Binding GroupedItems}"
+                SelectionMode="Single">
 
-                <DataGridTemplateColumn
-                    Width="Auto"
-                    MinWidth="70"
-                    Header="Tag ID"
-                    Tag="TagId">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate DataType="models:ExifTagItem">
-                            <TextBlock
-                                Padding="8,4"
-                                VerticalAlignment="Top"
-                                Text="{CompiledBinding TagId}"
-                                TextWrapping="Wrap" />
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
 
-                <DataGridTemplateColumn
-                    Width="Auto"
-                    MinWidth="120"
-                    Header="Tag Name"
-                    Tag="TagName">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate DataType="models:ExifTagItem">
-                            <TextBlock
-                                Padding="8,4"
-                                VerticalAlignment="Top"
-                                Text="{CompiledBinding TagName}"
-                                TextWrapping="Wrap" />
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
+                <DataGrid.ContextMenu>
+                    <ContextMenu x:DataType="vm:MainWindowViewModel">
+                        <MenuItem
+                            Command="{Binding CopyCellCommand}"
+                            Header="Copy"
+                            InputGesture="Ctrl+C" />
+                        <MenuItem
+                            Command="{Binding ExtractBinaryCommand}"
+                            Header="Extract data…"
+                            IsVisible="{Binding SelectedTag, Converter={x:Static conv:ExtractableTagConverter.Instance}}" />
+                        <Separator />
+                        <MenuItem Header="Columns">
+                            <MenuItem
+                                Header="Index"
+                                IsChecked="{Binding ShowIndex, Mode=TwoWay}"
+                                ToggleType="CheckBox" />
+                            <MenuItem
+                                Header="Tag ID"
+                                IsChecked="{Binding ShowTagId, Mode=TwoWay}"
+                                ToggleType="CheckBox" />
+                            <MenuItem
+                                Header="Tag Name"
+                                IsChecked="{Binding ShowTagName, Mode=TwoWay}"
+                                ToggleType="CheckBox" />
+                            <MenuItem
+                                Header="Value"
+                                IsChecked="{Binding ShowValue, Mode=TwoWay}"
+                                ToggleType="CheckBox" />
+                        </MenuItem>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
 
-                <DataGridTemplateColumn
-                    Width="*"
-                    MinWidth="150"
-                    Header="Value"
-                    Tag="Value">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate DataType="models:ExifTagItem">
-                            <TextBlock
-                                Padding="8,4"
-                                VerticalAlignment="Top"
-                                Text="{CompiledBinding TagValue}"
-                                TextWrapping="Wrap" />
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+
+                <DataGrid.Columns>
+                    <!--  Column: #  -->
+                    <DataGridTemplateColumn
+                        Width="Auto"
+                        MinWidth="40"
+                        Tag="Index">
+                        <DataGridTemplateColumn.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock
+                                    FontSize="{DynamicResource ControlContentThemeFontSize}"
+                                    FontWeight="SemiBold"
+                                    Foreground="{DynamicResource SystemBaseMediumHighColor}"
+                                    Text="#" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.HeaderTemplate>
+
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="models:ExifTagItem">
+                                <TextBlock
+                                    Padding="10,5,10,5"
+                                    VerticalAlignment="Top"
+                                    Text="{CompiledBinding Index}"
+                                    TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+
+                    <!--  Column: Tag ID  -->
+                    <DataGridTemplateColumn
+                        Width="Auto"
+                        MinWidth="70"
+                        Tag="TagId">
+                        <DataGridTemplateColumn.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock
+                                    FontSize="{DynamicResource ControlContentThemeFontSize}"
+                                    FontWeight="SemiBold"
+                                    Foreground="{DynamicResource SystemBaseMediumHighColor}"
+                                    Text="Tag ID" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.HeaderTemplate>
+
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="models:ExifTagItem">
+                                <TextBlock
+                                    Padding="10,5,10,5"
+                                    VerticalAlignment="Top"
+                                    Text="{CompiledBinding TagId}"
+                                    TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+
+                    <!--  Column: Tag Name  -->
+                    <DataGridTemplateColumn
+                        Width="Auto"
+                        MinWidth="120"
+                        Tag="TagName">
+                        <DataGridTemplateColumn.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock
+                                    FontSize="{DynamicResource ControlContentThemeFontSize}"
+                                    FontWeight="SemiBold"
+                                    Foreground="{DynamicResource SystemBaseMediumHighColor}"
+                                    Text="Tag Name" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.HeaderTemplate>
+
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="models:ExifTagItem">
+                                <TextBlock
+                                    Padding="10,5,10,5"
+                                    VerticalAlignment="Top"
+                                    Text="{CompiledBinding TagName}"
+                                    TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+
+                    <!--  Column: Value  -->
+                    <DataGridTemplateColumn
+                        Width="*"
+                        MinWidth="150"
+                        Tag="Value">
+                        <DataGridTemplateColumn.HeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock
+                                    FontSize="{DynamicResource ControlContentThemeFontSize}"
+                                    FontWeight="SemiBold"
+                                    Foreground="{DynamicResource SystemBaseMediumHighColor}"
+                                    Text="Value" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.HeaderTemplate>
+
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="models:ExifTagItem">
+                                <TextBlock
+                                    Padding="10,5,10,5"
+                                    VerticalAlignment="Top"
+                                    Text="{CompiledBinding TagValue}"
+                                    TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+
+            </DataGrid>
+        </Border>
+
 
         <!--  Footer: command preview + actions  -->
         <StackPanel
             Grid.Row="2"
-            Margin="8"
+            Margin="10"
             Spacing="10">
 
             <Border
                 MaxHeight="80"
-                Padding="10,6"
                 Background="{DynamicResource SystemControlBackgroundListLowBrush}"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                BorderThickness="1"
-                CornerRadius="4"
+                CornerRadius="{DynamicResource ControlCornerRadius}"
                 IsVisible="{Binding ShowCommandPreview}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <SelectableTextBlock
+                        Padding="10,6"
                         FontFamily="Cascadia Mono,Consolas,monospace"
                         FontSize="12"
-                        Opacity="0.85"
                         Text="{Binding CommandPreview}"
                         TextWrapping="Wrap" />
                 </ScrollViewer>
@@ -216,15 +270,15 @@
                             <MenuItem
                                 Command="{Binding ExportTextCommand}"
                                 Header="Text file…"
-                                InputGesture="Ctrl+1" />
+                                InputGesture="Ctrl+D1" />
                             <MenuItem
                                 Command="{Binding ExportCsvCommand}"
                                 Header="CSV file…"
-                                InputGesture="Ctrl+2" />
+                                InputGesture="Ctrl+D2" />
                             <MenuItem
                                 Command="{Binding ExportJsonCommand}"
                                 Header="JSON file…"
-                                InputGesture="Ctrl+3" />
+                                InputGesture="Ctrl+D3" />
                         </MenuFlyout>
                     </DropDownButton.Flyout>
                 </DropDownButton>

@@ -6,7 +6,42 @@
     <!--  "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options.  -->
 
     <Application.Styles>
-        <FluentTheme />
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources
+                    x:Key="Light"
+                    BaseHigh="#FF1B1B1B"
+                    BaseMedium="#FF6E6E6E"
+                    BaseMediumHigh="#FF505050"
+                    RegionColor="#FFF3F3F3" />
+                <ColorPaletteResources
+                    x:Key="Dark"
+                    BaseHigh="#FFE6E6E6"
+                    BaseMedium="#FF9A9A9A"
+                    BaseMediumHigh="#FFCCCCCC"
+                    RegionColor="#FF202020" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.v2.xaml" />
+
+
+        <StyleInclude Source="avares://ExifGlass/Styles/MenuStyle.axaml" />
+        <StyleInclude Source="avares://ExifGlass/Styles/ControlStyle.axaml" />
+        <StyleInclude Source="avares://ExifGlass/Styles/DataGridStyle.axaml" />
+
     </Application.Styles>
+
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="avares://ExifGlass/Styles/CommonResources.axaml" />
+                <ResourceInclude Source="avares://ExifGlass/Styles/ScrollbarResources.axaml" />
+                <ResourceInclude Source="avares://ExifGlass/Styles/MenuResources.axaml" />
+                <ResourceInclude Source="avares://ExifGlass/Styles/DataGridResources.axaml" />
+
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
 </Application>
