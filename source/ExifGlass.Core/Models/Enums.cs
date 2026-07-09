@@ -5,13 +5,19 @@ namespace ExifGlass.Core.Models;
 /// </summary>
 public enum ThemeMode
 {
-    /// <summary>Follow the operating-system theme.</summary>
+    /// <summary>
+    /// Follow the operating-system theme.
+    /// </summary>
     Default = 0,
 
-    /// <summary>Force the dark variant.</summary>
+    /// <summary>
+    /// Force the dark variant.
+    /// </summary>
     Dark = 1,
 
-    /// <summary>Force the light variant.</summary>
+    /// <summary>
+    /// Force the light variant.
+    /// </summary>
     Light = 2,
 }
 
@@ -20,10 +26,14 @@ public enum ThemeMode
 /// </summary>
 public enum AppMode
 {
-    /// <summary>Launched directly by the user (CLI arg, drag-drop, or file picker).</summary>
+    /// <summary>
+    /// Launched directly by the user (CLI arg, drag-drop, or file picker).
+    /// </summary>
     Standalone = 0,
 
-    /// <summary>Launched by ImageGlass as an integrated tool (pipe connection).</summary>
+    /// <summary>
+    /// Launched by ImageGlass as an integrated tool (pipe connection).
+    /// </summary>
     ImageGlass = 1,
 }
 

@@ -2,7 +2,9 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace ExifGlass.ViewModels;
 
-/// <summary>Backs a simple modal message dialog (heading + message + OK).</summary>
+/// <summary>
+/// Backs a simple modal message dialog (heading + message + OK).
+/// </summary>
 public sealed partial class MessageBoxViewModel : ViewModelBase
 {
     public event Action? CloseRequested;

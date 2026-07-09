@@ -33,7 +33,9 @@ public sealed partial class SettingsViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(CommandPreview))]
     private string _exifToolArguments = "";
 
-    /// <summary>Live preview of the command the current settings would produce.</summary>
+    /// <summary>
+    /// Live preview of the command the current settings would produce.
+    /// </summary>
     public string CommandPreview
     {
         get

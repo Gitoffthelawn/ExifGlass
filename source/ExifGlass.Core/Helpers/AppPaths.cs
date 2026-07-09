@@ -32,18 +32,28 @@ public static class AppPaths
         }
     }
 
-    /// <summary>Full path to the JSON config file.</summary>
+    /// <summary>
+    /// Full path to the JSON config file.
+    /// </summary>
     public static string ConfigFilePath => Path.Combine(ConfigDir, ConfigFileName);
 
-    /// <summary>Directory for transient files (ANSI path copies, binary-extract staging).</summary>
+    /// <summary>
+    /// Directory for transient files (ANSI path copies, binary-extract staging).
+    /// </summary>
     public static string TempDir => Path.Combine(ConfigDir, "Temp");
 
-    /// <summary>Directory the running executable lives in (where bundled ExifTool sits).</summary>
+    /// <summary>
+    /// Directory the running executable lives in (where bundled ExifTool sits).
+    /// </summary>
     public static string AppDir => AppContext.BaseDirectory;
 
-    /// <summary>Ensures the config directory exists; safe to call repeatedly.</summary>
+    /// <summary>
+    /// Ensures the config directory exists; safe to call repeatedly.
+    /// </summary>
     public static void EnsureConfigDir() => Directory.CreateDirectory(ConfigDir);
 
-    /// <summary>Ensures the temp directory exists; safe to call repeatedly.</summary>
+    /// <summary>
+    /// Ensures the temp directory exists; safe to call repeatedly.
+    /// </summary>
     public static void EnsureTempDir() => Directory.CreateDirectory(TempDir);
 }

@@ -1,5 +1,3 @@
-using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
 using Avalonia.Collections;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -8,6 +6,8 @@ using ExifGlass.Core.Services;
 using ExifGlass.Helpers;
 using ExifGlass.Integration;
 using ExifGlass.Services;
+using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ExifGlass.ViewModels;
 
@@ -28,13 +28,19 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     // Re-entrancy guard for the "keep at least one column visible" rule.
     private bool _revertingColumn;
 
-    /// <summary>Raised when the user asks to quit (Menu → Exit / Esc).</summary>
+    /// <summary>
+    /// Raised when the user asks to quit (Menu → Exit / Esc).
+    /// </summary>
     public event Action? ExitRequested;
 
-    /// <summary>Live rows; the grouped view observes this collection.</summary>
+    /// <summary>
+    /// Live rows; the grouped view observes this collection.
+    /// </summary>
     public ObservableCollection<ExifTagItem> Items { get; } = [];
 
-    /// <summary>Grouped, reflection-free projection bound by the grid.</summary>
+    /// <summary>
+    /// Grouped, reflection-free projection bound by the grid.
+    /// </summary>
     public DataGridCollectionView GroupedItems { get; }
 
     /// <summary>
@@ -142,7 +148,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
                     Items.Add(tag);
                 }
                 HasItems = Items.Count > 0;
-                Title = $"{Path.GetFileName(path)} — ExifGlass";
+                Title = $"{Path.GetFileName(path)} – ExifGlass";
             }
             else
             {
@@ -262,13 +268,18 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         await _dialogs.ExportAsync(type, [.. Items], baseName);
     }
 
+
     // Window-state persistence: the view feeds bounds here; the config is saved on close.
     #region Window state
 
-    /// <summary>Whether the window should open maximized (restored from config).</summary>
+    /// <summary>
+    /// Whether the window should open maximized (restored from config).
+    /// </summary>
     public bool RestoreMaximized => _settings.Config.Window.Maximized;
 
-    /// <summary>Records the window's normal-state bounds (ignored while maximized/minimized).</summary>
+    /// <summary>
+    /// Records the window's normal-state bounds (ignored while maximized/minimized).
+    /// </summary>
     public void UpdateNormalBounds(int x, int y, int width, int height)
     {
         var w = _settings.Config.Window;
@@ -278,7 +289,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase
         w.Height = height;
     }
 
-    /// <summary>Persists the final window state to disk on close.</summary>
+    /// <summary>
+    /// Persists the final window state to disk on close.
+    /// </summary>
     public void SaveOnClose(bool maximized)
     {
         _settings.Config.Window.Maximized = maximized;
@@ -293,6 +306,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     }
 
     #endregion
+
 
     // Keep at least one column visible; mirror each change into the config for persistence.
     #region Column visibility guards
@@ -332,6 +346,7 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     }
 
     #endregion
+
 
     // DataGridCollectionView is [RequiresUnreferencedCode] (IL2026) because it inspects
     // items via reflection/TypeDescriptor. ExifTagItem's public members are preserved with

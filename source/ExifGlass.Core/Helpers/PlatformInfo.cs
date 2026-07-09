@@ -35,7 +35,9 @@ public static class PlatformInfo
         return false;
     }
 
-    /// <summary>Human-readable architecture string (e.g. <c>x64</c>, <c>arm64</c>).</summary>
+    /// <summary>
+    /// Human-readable architecture string (e.g. <c>x64</c>, <c>arm64</c>).
+    /// </summary>
     public static string Architecture => RuntimeInformation.ProcessArchitecture switch
     {
         System.Runtime.InteropServices.Architecture.X64 => "x64",

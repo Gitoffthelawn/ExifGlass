@@ -43,7 +43,9 @@ public static class ExifToolCommand
         return string.Join(' ', parts);
     }
 
-    /// <summary>Splits a user-supplied argument string into tokens, honoring double quotes.</summary>
+    /// <summary>
+    /// Splits a user-supplied argument string into tokens, honoring double quotes.
+    /// </summary>
     public static IReadOnlyList<string> Tokenize(string input)
     {
         var tokens = new List<string>();
@@ -74,6 +76,5 @@ public static class ExifToolCommand
         return tokens;
     }
 
-    private static string Quote(string value)
-        => value.Contains(' ') || value.Length == 0 ? $"\"{value}\"" : value;
+    private static string Quote(string value) => value.Contains(' ') || value.Length == 0 ? $"\"{value}\"" : value;
 }

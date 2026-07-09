@@ -13,11 +13,15 @@ public sealed record ExifReadResult(
     bool Success,
     string? ErrorMessage)
 {
-    /// <summary>An empty, successful result (e.g. after a "clear" request).</summary>
+    /// <summary>
+    /// An empty, successful result (e.g. after a "clear" request).
+    /// </summary>
     public static ExifReadResult Empty(string commandPreview = "")
         => new([], commandPreview, true, null);
 
-    /// <summary>A failed result carrying an error message.</summary>
+    /// <summary>
+    /// A failed result carrying an error message.
+    /// </summary>
     public static ExifReadResult Failure(string errorMessage, string commandPreview = "")
         => new([], commandPreview, false, errorMessage);
 }

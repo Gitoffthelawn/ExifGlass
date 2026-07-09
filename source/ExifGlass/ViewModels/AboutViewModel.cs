@@ -4,7 +4,9 @@ using ExifGlass.Services;
 
 namespace ExifGlass.ViewModels;
 
-/// <summary>Backs the About dialog: version, links, and a notify-only update check.</summary>
+/// <summary>
+/// Backs the About dialog: version, links, and a notify-only update check.
+/// </summary>
 public sealed partial class AboutViewModel : ViewModelBase
 {
     private readonly IDialogService _dialogs;

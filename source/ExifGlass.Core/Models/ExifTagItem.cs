@@ -14,19 +14,29 @@ namespace ExifGlass.Core.Models;
                             | DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
 public sealed record ExifTagItem
 {
-    /// <summary>1-based position of the tag within the read result.</summary>
+    /// <summary>
+    /// 1-based position of the tag within the read result.
+    /// </summary>
     public int Index { get; init; }
 
-    /// <summary>Hexadecimal tag id (from the <c>-H</c> flag).</summary>
+    /// <summary>
+    /// Hexadecimal tag id (from the <c>-H</c> flag).
+    /// </summary>
     public string TagId { get; init; } = "";
 
-    /// <summary>Family-0 group name (EXIF, File, XMP, ...).</summary>
+    /// <summary>
+    /// Family-0 group name (EXIF, File, XMP, ...).
+    /// </summary>
     public string TagGroup { get; init; } = "";
 
-    /// <summary>Human-readable tag name.</summary>
+    /// <summary>
+    /// Human-readable tag name.
+    /// </summary>
     public string TagName { get; init; } = "";
 
-    /// <summary>Formatted tag value.</summary>
+    /// <summary>
+    /// Formatted tag value.
+    /// </summary>
     public string TagValue { get; init; } = "";
 
     /// <summary>
@@ -34,6 +44,5 @@ public sealed record ExifTagItem
     /// </summary>
     /// <remarks>Derived, UI-only; excluded from the JSON export which carries just the metadata fields.</remarks>
     [JsonIgnore]
-    public bool CanExtractBinary
-        => TagValue.Contains(", use -b option to extract", StringComparison.Ordinal);
+    public bool CanExtractBinary => TagValue.Contains(", use -b option to extract", StringComparison.Ordinal);
 }

@@ -13,7 +13,9 @@ namespace ExifGlass.Core.Helpers;
 /// </remarks>
 public static class ExifToolOutputParser
 {
-    /// <summary>Parses raw stdout into ordered, 1-indexed rows.</summary>
+    /// <summary>
+    /// Parses raw stdout into ordered, 1-indexed rows.
+    /// </summary>
     public static IReadOnlyList<ExifTagItem> Parse(string? output)
     {
         var items = new List<ExifTagItem>();

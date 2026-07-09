@@ -19,7 +19,9 @@ public static class CommandLine
     private const string PipeFlag = "--pipe";
     private const string SchemePrefix = "exifglass:";
 
-    /// <summary>Parses the process argument vector into structured startup options.</summary>
+    /// <summary>
+    /// Parses the process argument vector into structured startup options.
+    /// </summary>
     public static StartupOptions Parse(IReadOnlyList<string> args)
     {
         var overrides = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

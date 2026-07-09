@@ -1,6 +1,6 @@
+using ExifGlass.Core.Models;
 using System.Text;
 using System.Text.Json;
-using ExifGlass.Core.Models;
 
 namespace ExifGlass.Core.Services;
 
@@ -78,7 +78,9 @@ public sealed class ExportService : IExportService
         return JsonSerializer.Serialize(list, AppJsonContext.Default.ListExifTagItem);
     }
 
-    /// <summary>Quotes an RFC-4180 field, doubling any embedded quotes.</summary>
+    /// <summary>
+    /// Quotes an RFC-4180 field, doubling any embedded quotes.
+    /// </summary>
     private static string Field(string value)
         => "\"" + value.Replace("\"", "\"\"") + "\"";
 }

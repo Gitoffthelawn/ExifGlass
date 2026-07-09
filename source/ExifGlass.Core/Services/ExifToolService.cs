@@ -5,9 +5,10 @@ using ExifGlass.Core.Models;
 namespace ExifGlass.Core.Services;
 
 /// <summary>
-/// One-shot ExifTool reader: each read spawns a fresh process via <see cref="IProcessRunner"/>.
-/// Correct and simple; the internal invocation can later become a persistent
-/// <c>-stay_open</c> daemon behind the same <see cref="IExifToolService"/> contract.
+/// ExifTool reader. Reads go through a persistent <c>-stay_open</c> daemon (see
+/// <see cref="ExifToolDaemon"/>) for fast live navigation; the rarer binary-extraction and
+/// validation calls stay one-shot through <see cref="IProcessRunner"/>. Both paths share the
+/// single <see cref="ExifToolCommand"/> argument builder, so a read and its footer preview can't drift.
 /// </summary>
 public sealed class ExifToolService(
     IExifToolPathResolver resolver,
@@ -16,6 +17,10 @@ public sealed class ExifToolService(
 {
     private readonly List<string> _tempFiles = [];
     private readonly Lock _tempLock = new();
+
+    // Persistent daemon, recreated if the resolved executable changes or it crashes.
+    private readonly Lock _daemonLock = new();
+    private ExifToolDaemon? _daemon;
 
     public string BuildCommandPreview(string filePath)
     {
@@ -46,11 +51,12 @@ public sealed class ExifToolService(
             if (tempCopy is not null) readPath = tempCopy;
         }
 
-        ProcessResult result;
+        string stdout, stderr;
         try
         {
+            var daemon = GetDaemon(exe);
             var args = ExifToolCommand.BuildArgs(readPath, cfg.ExifToolArguments);
-            result = await runner.RunAsync(exe, args, cancellationToken).ConfigureAwait(false);
+            (stdout, stderr) = await daemon.ExecuteAsync(args, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -67,16 +73,7 @@ public sealed class ExifToolService(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Non-zero exit with no output means a real failure.
-        if (result.ExitCode != 0 && string.IsNullOrWhiteSpace(result.StandardOutput))
-        {
-            var message = string.IsNullOrWhiteSpace(result.StandardError)
-                ? "ExifTool exited with an error while reading this file."
-                : result.StandardError.Trim();
-            return ExifReadResult.Failure(message, preview);
-        }
-
-        var tags = ExifToolOutputParser.Parse(result.StandardOutput);
+        var tags = ExifToolOutputParser.Parse(stdout);
 
         // Restore the real file name when we read from a temp copy.
         if (tempCopy is not null && tags.Count > 0)
@@ -86,9 +83,11 @@ public sealed class ExifToolService(
 
         if (tags.Count == 0)
         {
-            var message = string.IsNullOrWhiteSpace(result.StandardError)
+            // The daemon has no per-command exit code; empty output means either an error
+            // (surfaced on stderr) or a file with no readable metadata.
+            var message = string.IsNullOrWhiteSpace(stderr)
                 ? "No metadata was found for this file."
-                : result.StandardError.Trim();
+                : stderr.Trim();
             return ExifReadResult.Failure(message, preview);
         }
 
@@ -225,7 +224,34 @@ public sealed class ExifToolService(
         }
     }
 
-    public void Dispose() => CleanupTempFiles();
+    public void Dispose()
+    {
+        lock (_daemonLock)
+        {
+            _daemon?.Dispose();
+            _daemon = null;
+        }
+        CleanupTempFiles();
+    }
+
+    /// <summary>
+    /// Returns the persistent daemon, (re)creating it if none exists yet or the resolved
+    /// executable has changed (e.g. a new path set in Settings). Extra arguments are sent per
+    /// command, so an argument change needs no restart.
+    /// </summary>
+    private ExifToolDaemon GetDaemon(string exe)
+    {
+        lock (_daemonLock)
+        {
+            if (_daemon is not null
+                && !string.Equals(_daemon.ExePath, exe, StringComparison.OrdinalIgnoreCase))
+            {
+                _daemon.Dispose();
+                _daemon = null;
+            }
+            return _daemon ??= new ExifToolDaemon(exe);
+        }
+    }
 
     private string? TryCreateAnsiCopy(string filePath)
     {

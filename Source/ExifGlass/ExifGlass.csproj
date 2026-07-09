@@ -35,6 +35,7 @@
     </PackageReference>
     <PackageReference Include="ProDataGrid" Version="12.0.4" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="ImageGlass.SDK" Version="1.0.100379" />
   </ItemGroup>
 
   <ItemGroup>

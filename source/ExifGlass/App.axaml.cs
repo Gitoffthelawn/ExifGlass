@@ -5,6 +5,7 @@ using Avalonia.Markup.Xaml;
 using ExifGlass.Composition;
 using ExifGlass.Core.Helpers;
 using ExifGlass.Core.Models;
+using ExifGlass.Integration;
 using ExifGlass.Views;
 
 namespace ExifGlass;
@@ -12,6 +13,7 @@ namespace ExifGlass;
 public partial class App : Application
 {
     private AppServices? _services;
+    private IImageSourceHost? _host;
 
     public override void Initialize()
     {
@@ -43,20 +45,43 @@ public partial class App : Application
             _services.Dialogs.Owner = window;
 
             desktop.MainWindow = window;
+
+            // One seam, two entry modes: --pipe => ImageGlass integrated tool (live PHOTO_CHANGED
+            // updates), otherwise standalone (CLI file). Both funnel into LoadFileAsync.
+            _host = options.Mode == AppMode.ImageGlass
+                ? new ImageGlassSourceHost(desktop.Args ?? [])
+                : new StandaloneSourceHost(options.InitialFilePath);
+
+            _host.FileRequested += (_, e) =>
+            {
+                if (e.Activate) BringToFront(window);
+                _ = vm.LoadFileAsync(e.FilePath);
+            };
+            _host.CloseRequested += (_, _) => desktop.Shutdown();
+
             desktop.ShutdownRequested += (_, _) =>
             {
+                _host?.Dispose();
                 _services?.ExifToolService.CleanupTempFiles();
                 _services?.Dispose();
             };
 
-            // Kick off the initial read (if launched with a file) without blocking startup.
-            if (!string.IsNullOrEmpty(options.InitialFilePath))
-            {
-                _ = vm.LoadFileAsync(options.InitialFilePath);
-            }
+            // Emit the initial file / connect the pipe. The UI thread is never blocked by pipe IO.
+            _host.Start();
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    /// <summary>Brings the main window to the foreground (used on an ImageGlass hotkey re-invoke).</summary>
+    private static void BringToFront(Window window)
+    {
+        if (window.WindowState == WindowState.Minimized)
+        {
+            window.WindowState = WindowState.Normal;
+        }
+        window.Show();
+        window.Activate();
     }
 
     private static void RestoreWindow(Window window, AppConfig config)

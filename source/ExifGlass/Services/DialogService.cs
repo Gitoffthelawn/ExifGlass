@@ -15,14 +15,18 @@ namespace ExifGlass.Services;
 /// </summary>
 public interface IDialogService
 {
-    /// <summary>The window that owns pickers and dialogs; set once the main window exists.</summary>
+    /// <summary>
+    /// The window that owns pickers and dialogs; set once the main window exists.
+    /// </summary>
     Window? Owner { get; set; }
 
     Task<string?> PickImageFileAsync();
     Task<string?> PickExecutableAsync();
     Task<string?> PickBinaryDestinationAsync(string suggestedFileName);
 
-    /// <summary>Shows a save picker for the format, then writes the rows. Returns <c>true</c> if saved.</summary>
+    /// <summary>
+    /// Shows a save picker for the format, then writes the rows. Returns <c>true</c> if saved.
+    /// </summary>
     Task<bool> ExportAsync(ExportFileType type, IReadOnlyList<ExifTagItem> rows, string suggestedBaseName);
 
     Task CopyTextAsync(string? text);
@@ -30,7 +34,9 @@ public interface IDialogService
 
     Task ShowMessageAsync(string heading, string message, string? title = null);
 
-    /// <summary>Shows the settings dialog; returns <c>true</c> when the user pressed OK.</summary>
+    /// <summary>
+    /// Shows the settings dialog; returns <c>true</c> when the user pressed OK.
+    /// </summary>
     Task<bool> ShowSettingsDialogAsync();
     Task ShowAboutDialogAsync();
 }

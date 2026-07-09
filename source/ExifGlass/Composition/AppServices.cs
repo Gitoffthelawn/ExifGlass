@@ -29,7 +29,9 @@ public sealed class AppServices : IDisposable
         Dialogs = new DialogService(Settings, ExifToolPathResolver, ExportService, ThemeService);
     }
 
-    /// <summary>Creates the main window's view model bound to the shared services.</summary>
+    /// <summary>
+    /// Creates the main window's view model bound to the shared services.
+    /// </summary>
     public MainWindowViewModel CreateMainWindowViewModel()
         => new(ExifToolService, Settings, Dialogs);
 

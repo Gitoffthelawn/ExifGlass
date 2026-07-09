@@ -8,7 +8,9 @@ namespace ExifGlass.Core.Services;
 /// </summary>
 public interface ISettingsService
 {
-    /// <summary>The current, mutable configuration.</summary>
+    /// <summary>
+    /// The current, mutable configuration.
+    /// </summary>
     AppConfig Config { get; }
 
     /// <summary>

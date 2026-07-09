@@ -10,6 +10,8 @@ public sealed class WindowBounds
     public int Width { get; set; } = 600;
     public int Height { get; set; } = 800;
 
-    /// <summary><c>true</c> when the window was maximized at last save.</summary>
+    /// <summary>
+    /// <c>true</c> when the window was maximized at last save.
+    /// </summary>
     public bool Maximized { get; set; }
 }
