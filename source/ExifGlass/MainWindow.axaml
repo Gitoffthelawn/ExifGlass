@@ -2,8 +2,73 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:vm="using:ExifGlass.ViewModels"
+        xmlns:models="using:ExifGlass.Core.Models"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="800"
         x:Class="ExifGlass.MainWindow"
-        Title="ExifGlass">
-    Welcome to Avalonia!
+        x:DataType="vm:MainWindowViewModel"
+        Width="600" Height="800"
+        Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Error banner -->
+        <Border Grid.Row="0"
+                IsVisible="{Binding HasError}"
+                Background="#33FF3B30"
+                BorderBrush="#FFFF3B30"
+                BorderThickness="0,0,0,1"
+                Padding="12,8">
+            <Grid ColumnDefinitions="*,Auto">
+                <SelectableTextBlock Grid.Column="0"
+                                     Text="{Binding ErrorMessage}"
+                                     TextWrapping="Wrap"
+                                     VerticalAlignment="Center" />
+                <Button Grid.Column="1"
+                        Content="Dismiss"
+                        Command="{Binding DismissErrorCommand}"
+                        VerticalAlignment="Center" />
+            </Grid>
+        </Border>
+
+        <!-- Metadata grid -->
+        <DataGrid Grid.Row="1"
+                  x:Name="MetadataGrid"
+                  ItemsSource="{Binding GroupedItems}"
+                  IsReadOnly="True"
+                  CanUserSortColumns="False"
+                  CanUserReorderColumns="False"
+                  GridLinesVisibility="Horizontal"
+                  HeadersVisibility="Column"
+                  SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="#"
+                                    Width="Auto"
+                                    Binding="{CompiledBinding Index, DataType=models:ExifTagItem}" />
+                <DataGridTextColumn Header="Tag ID"
+                                    Width="Auto"
+                                    Binding="{CompiledBinding TagId, DataType=models:ExifTagItem}" />
+                <DataGridTextColumn Header="Tag Name"
+                                    Width="Auto"
+                                    Binding="{CompiledBinding TagName, DataType=models:ExifTagItem}" />
+                <DataGridTextColumn Header="Value"
+                                    Width="*"
+                                    Binding="{CompiledBinding TagValue, DataType=models:ExifTagItem}" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Footer: live command preview -->
+        <Border Grid.Row="2"
+                IsVisible="{Binding ShowCommandPreview}"
+                Background="{DynamicResource SystemControlBackgroundListLowBrush}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="12,8">
+            <SelectableTextBlock Text="{Binding CommandPreview}"
+                                 FontFamily="Cascadia Mono,Consolas,monospace"
+                                 FontSize="12"
+                                 TextWrapping="Wrap"
+                                 Opacity="0.8" />
+        </Border>
+    </Grid>
 </Window>

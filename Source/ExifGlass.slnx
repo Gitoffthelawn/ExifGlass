@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="ExifGlass/ExifGlass.csproj" />
+  <Project Path="ExifGlass.Core/ExifGlass.Core.csproj" />
+  <Project Path="ExifGlass.Core.Tests/ExifGlass.Core.Tests.csproj" />
 </Solution>
