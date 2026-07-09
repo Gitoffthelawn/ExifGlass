@@ -265,7 +265,10 @@ public sealed partial class MainWindowViewModel : ViewModelBase
     // Window-state persistence: the view feeds bounds here; the config is saved on close.
     #region Window state
 
-    /// <summary>Records the window's normal-state bounds (ignored while maximized).</summary>
+    /// <summary>Whether the window should open maximized (restored from config).</summary>
+    public bool RestoreMaximized => _settings.Config.Window.Maximized;
+
+    /// <summary>Records the window's normal-state bounds (ignored while maximized/minimized).</summary>
     public void UpdateNormalBounds(int x, int y, int width, int height)
     {
         var w = _settings.Config.Window;

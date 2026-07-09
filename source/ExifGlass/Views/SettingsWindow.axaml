@@ -1,21 +1,24 @@
-<views:StyledWindow xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                    xmlns:views="using:ExifGlass.Views"
-                    xmlns:vm="using:ExifGlass.ViewModels"
-                    mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="520"
-                    x:Class="ExifGlass.Views.SettingsWindow"
-                    x:DataType="vm:SettingsViewModel"
-                    Title="Settings"
-                    Width="500"
-                    CanResize="False"
-                    SizeToContent="Height"
-                    WindowStartupLocation="CenterOwner"
-                    Icon="/Assets/exifglass_icon_512.ico">
+<views:StyledWindow
+    x:Class="ExifGlass.Views.SettingsWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="using:ExifGlass.Views"
+    xmlns:vm="using:ExifGlass.ViewModels"
+    mc:Ignorable="d"
+    d:DesignHeight="520"
+    d:DesignWidth="500"
+    x:DataType="vm:SettingsViewModel"
+    Title="Settings"
+    Width="500"
+    CanResize="False"
+    Icon="/Assets/exifglass_icon_512.ico"
+    SizeToContent="Height"
+    WindowStartupLocation="CenterOwner">
 
     <Window.KeyBindings>
-        <KeyBinding Gesture="Escape" Command="{Binding CancelCommand}" />
+        <KeyBinding Command="{Binding CancelCommand}" Gesture="Escape" />
     </Window.KeyBindings>
 
     <Grid RowDefinitions="*,Auto">
@@ -23,64 +26,79 @@
             <StackPanel Margin="20" Spacing="6">
 
                 <Label FontWeight="SemiBold">App theme</Label>
-                <ComboBox Margin="0,0,0,12"
-                          HorizontalAlignment="Stretch"
-                          SelectedIndex="{Binding SelectedThemeIndex}">
+                <ComboBox
+                    Margin="0,0,0,12"
+                    HorizontalAlignment="Stretch"
+                    SelectedIndex="{Binding SelectedThemeIndex}">
                     <ComboBoxItem>System setting</ComboBoxItem>
                     <ComboBoxItem>Dark</ComboBoxItem>
                     <ComboBoxItem>Light</ComboBoxItem>
                 </ComboBox>
 
-                <CheckBox Margin="0,0,0,8"
-                          IsChecked="{Binding AlwaysOnTop}"
-                          Content="Keep window always on top" />
+                <CheckBox
+                    Margin="0,0,0,8"
+                    Content="Keep window always on top"
+                    IsChecked="{Binding AlwaysOnTop}" />
 
-                <TextBlock Margin="0,12,0,4" FontSize="16" FontWeight="SemiBold">
+                <TextBlock
+                    Margin="0,12,0,4"
+                    FontSize="16"
+                    FontWeight="SemiBold">
                     ExifTool
                 </TextBlock>
 
                 <TextBlock Margin="0,0,0,4">Executable path</TextBlock>
                 <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
-                    <TextBox Grid.Column="0"
-                             Text="{Binding ExifToolPath}"
-                             PlaceholderText="(bundled / found on PATH)"
-                             AcceptsReturn="False" />
-                    <Button Grid.Column="1"
-                            Margin="10,0,0,0"
-                            VerticalAlignment="Top"
-                            Command="{Binding BrowseExecutableCommand}"
-                            Content="Select…" />
+                    <TextBox
+                        Grid.Column="0"
+                        AcceptsReturn="False"
+                        PlaceholderText="(bundled / found on PATH)"
+                        Text="{Binding ExifToolPath}" />
+                    <Button
+                        Grid.Column="1"
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Top"
+                        Command="{Binding BrowseExecutableCommand}"
+                        Content="Select…" />
                 </Grid>
 
                 <TextBlock Margin="0,0,0,4">Arguments</TextBlock>
-                <TextBox Margin="0,0,0,12"
-                         Text="{Binding ExifToolArguments}"
-                         AcceptsReturn="False" />
+                <TextBox
+                    Margin="0,0,0,12"
+                    AcceptsReturn="False"
+                    Text="{Binding ExifToolArguments}" />
 
                 <TextBlock Margin="0,0,0,4">Preview</TextBlock>
-                <Border Padding="10,8"
-                        Background="{DynamicResource SystemControlBackgroundListLowBrush}"
-                        CornerRadius="4">
-                    <SelectableTextBlock Text="{Binding CommandPreview}"
-                                         FontFamily="Cascadia Mono,Consolas,monospace"
-                                         FontSize="12"
-                                         TextWrapping="Wrap" />
+                <Border
+                    Padding="10,8"
+                    Background="{DynamicResource SystemControlBackgroundListLowBrush}"
+                    CornerRadius="4">
+                    <SelectableTextBlock
+                        FontFamily="Cascadia Mono,Consolas,monospace"
+                        FontSize="12"
+                        Text="{Binding CommandPreview}"
+                        TextWrapping="Wrap" />
                 </Border>
 
             </StackPanel>
         </ScrollViewer>
 
         <Border Grid.Row="1" Padding="20,12">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-                <Button MinWidth="88"
-                        Classes="accent"
-                        HorizontalContentAlignment="Center"
-                        Command="{Binding OkCommand}"
-                        Content="OK" />
-                <Button MinWidth="88"
-                        HorizontalContentAlignment="Center"
-                        Command="{Binding CancelCommand}"
-                        Content="Cancel" />
+            <StackPanel
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="10">
+                <Button
+                    MinWidth="88"
+                    HorizontalContentAlignment="Center"
+                    Classes="accent"
+                    Command="{Binding OkCommand}"
+                    Content="OK" />
+                <Button
+                    MinWidth="88"
+                    HorizontalContentAlignment="Center"
+                    Command="{Binding CancelCommand}"
+                    Content="Cancel" />
             </StackPanel>
         </Border>
     </Grid>

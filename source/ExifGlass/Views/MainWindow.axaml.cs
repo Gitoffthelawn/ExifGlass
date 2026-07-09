@@ -1,8 +1,11 @@
+using System.Collections;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using ExifGlass.Core.Models;
 using ExifGlass.ViewModels;
 
@@ -19,21 +22,91 @@ public partial class MainWindow : StyledWindow
 {
     private MainWindowViewModel? _boundVm;
 
+    // Reflection-free per-column comparers (compare ExifTagItem directly).
+    private static readonly IComparer IndexComparer = Comparer<ExifTagItem>.Create(static (a, b) => a.Index.CompareTo(b.Index));
+    private static readonly IComparer TagIdComparer = Comparer<ExifTagItem>.Create(static (a, b) => string.CompareOrdinal(a.TagId, b.TagId));
+    private static readonly IComparer TagNameComparer = Comparer<ExifTagItem>.Create(static (a, b) => string.CompareOrdinal(a.TagName, b.TagName));
+    private static readonly IComparer ValueComparer = Comparer<ExifTagItem>.Create(static (a, b) => string.CompareOrdinal(a.TagValue, b.TagValue));
+
     public MainWindow()
     {
         InitializeComponent();
+        ConfigureColumnSorting();
 
         DataContextChanged += OnDataContextChanged;
 
         MetadataGrid.CellPointerPressed += OnCellPointerPressed;
         MetadataGrid.CurrentCellChanged += OnCurrentCellChanged;
         MetadataGrid.SelectionChanged += OnGridSelectionChanged;
+        MetadataGrid.Sorting += OnSorting;
 
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         AddHandler(DragDrop.DropEvent, OnDrop);
 
-        SizeChanged += (_, _) => CaptureNormalBounds();
-        PositionChanged += (_, _) => CaptureNormalBounds();
+        SizeChanged += (_, _) => ScheduleBoundsCapture();
+        PositionChanged += (_, _) => ScheduleBoundsCapture();
+    }
+
+    // Mark the columns sortable with a reflection-free comparer (so headers are clickable and
+    // never fall back to the trim-unfriendly DataGridSortDescription.FromPath).
+    private void ConfigureColumnSorting()
+    {
+        foreach (var column in MetadataGrid.Columns)
+        {
+            column.CanUserSort = true;
+        }
+        MetadataGrid.Columns[0].CustomSortComparer = IndexComparer;
+        MetadataGrid.Columns[1].CustomSortComparer = TagIdComparer;
+        MetadataGrid.Columns[2].CustomSortComparer = TagNameComparer;
+        MetadataGrid.Columns[3].CustomSortComparer = ValueComparer;
+    }
+
+    // We own the grouped DataGridCollectionView, so apply the sort ourselves: toggle the
+    // direction, show the arrow only on the active column, and re-sort the view with a
+    // reflection-free comparer. Handling the event keeps grouping intact under AOT.
+    private void OnSorting(object? sender, DataGridColumnEventArgs e)
+    {
+        if (_boundVm is null) return;
+        e.Handled = true;
+
+        var column = e.Column;
+        var comparer = ComparerForColumn(column.Tag as string);
+        if (comparer is null) return;
+
+        var direction = column.SortDirection == ListSortDirection.Ascending
+            ? ListSortDirection.Descending
+            : ListSortDirection.Ascending;
+
+        foreach (var c in MetadataGrid.Columns) c.SortDirection = null;
+        column.SortDirection = direction;
+
+        var view = _boundVm.GroupedItems;
+        using (view.DeferRefresh())
+        {
+            view.SortDescriptions.Clear();
+            view.SortDescriptions.Add(DataGridSortDescription.FromComparer(comparer, direction));
+        }
+    }
+
+    private static IComparer? ComparerForColumn(string? key) => key switch
+    {
+        "Index" => IndexComparer,
+        "TagId" => TagIdComparer,
+        "TagName" => TagNameComparer,
+        "Value" => ValueComparer,
+        _ => null,
+    };
+
+    protected override void OnOpened(EventArgs e)
+    {
+        base.OnOpened(e);
+
+        // Apply the saved maximized state here: setting WindowState before the platform
+        // window exists (during construction/restore) is unreliable in Avalonia.
+        if (_boundVm?.RestoreMaximized == true)
+        {
+            WindowState = WindowState.Maximized;
+        }
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -143,6 +216,13 @@ public partial class MainWindow : StyledWindow
         }
         return single;
     }
+
+    // Defer to Background priority so the capture runs after Avalonia has settled both the
+    // size AND the WindowState for this change. That defeats the maximize/minimize race where
+    // a resize event arrives while WindowState is momentarily still Normal — otherwise the
+    // maximized/minimized bounds would be mis-recorded as the normal bounds.
+    private void ScheduleBoundsCapture()
+        => Dispatcher.UIThread.Post(CaptureNormalBounds, DispatcherPriority.Background);
 
     private void CaptureNormalBounds()
     {

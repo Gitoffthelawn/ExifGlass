@@ -66,9 +66,7 @@ public partial class App : Application
         window.Height = bounds.Height;
         window.Position = new PixelPoint(Math.Max(0, bounds.X), Math.Max(0, bounds.Y));
         window.Topmost = config.AlwaysOnTop;
-        if (bounds.Maximized)
-        {
-            window.WindowState = WindowState.Maximized;
-        }
+        // The maximized state is applied in MainWindow.OnOpened — setting WindowState before
+        // the platform window exists is unreliable in Avalonia.
     }
 }

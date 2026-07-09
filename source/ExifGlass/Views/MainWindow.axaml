@@ -1,149 +1,255 @@
-<views:StyledWindow xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                    xmlns:vm="using:ExifGlass.ViewModels"
-                    xmlns:views="using:ExifGlass.Views"
-                    xmlns:models="using:ExifGlass.Core.Models"
-                    xmlns:conv="using:ExifGlass.Converters"
-                    mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="800"
-                    x:Class="ExifGlass.Views.MainWindow"
-                    x:DataType="vm:MainWindowViewModel"
-                    Width="600" Height="800"
-                    DragDrop.AllowDrop="True"
-                    Icon="/Assets/exifglass_icon_512.ico"
-                    Title="{Binding Title}">
+<views:StyledWindow
+    x:Class="ExifGlass.Views.MainWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:conv="using:ExifGlass.Converters"
+    xmlns:models="using:ExifGlass.Core.Models"
+    xmlns:views="using:ExifGlass.Views"
+    xmlns:vm="using:ExifGlass.ViewModels"
+    mc:Ignorable="d"
+    d:DesignHeight="800"
+    d:DesignWidth="600"
+    x:DataType="vm:MainWindowViewModel"
+    Title="{Binding Title}"
+    Width="600"
+    Height="800"
+    DragDrop.AllowDrop="True"
+    Icon="/Assets/exifglass_icon_512.ico">
 
     <Window.KeyBindings>
-        <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenFileCommand}" />
-        <KeyBinding Gesture="Ctrl+C" Command="{Binding CopyCellCommand}" />
-        <KeyBinding Gesture="Ctrl+D1" Command="{Binding ExportTextCommand}" />
-        <KeyBinding Gesture="Ctrl+D2" Command="{Binding ExportCsvCommand}" />
-        <KeyBinding Gesture="Ctrl+D3" Command="{Binding ExportJsonCommand}" />
-        <KeyBinding Gesture="Ctrl+OemComma" Command="{Binding OpenSettingsCommand}" />
-        <KeyBinding Gesture="F1" Command="{Binding OpenAboutCommand}" />
-        <KeyBinding Gesture="Escape" Command="{Binding ExitCommand}" />
+        <KeyBinding Command="{Binding OpenFileCommand}" Gesture="Ctrl+O" />
+        <KeyBinding Command="{Binding CopyCellCommand}" Gesture="Ctrl+C" />
+        <KeyBinding Command="{Binding ExportTextCommand}" Gesture="Ctrl+D1" />
+        <KeyBinding Command="{Binding ExportCsvCommand}" Gesture="Ctrl+D2" />
+        <KeyBinding Command="{Binding ExportJsonCommand}" Gesture="Ctrl+D3" />
+        <KeyBinding Command="{Binding OpenSettingsCommand}" Gesture="Ctrl+OemComma" />
+        <KeyBinding Command="{Binding OpenAboutCommand}" Gesture="F1" />
+        <KeyBinding Command="{Binding ExitCommand}" Gesture="Escape" />
     </Window.KeyBindings>
 
     <Grid RowDefinitions="Auto,*,Auto">
 
-        <!-- Error banner -->
-        <Border Grid.Row="0"
-                IsVisible="{Binding HasError}"
-                Background="#33FF3B30"
-                BorderBrush="#FFFF3B30"
-                BorderThickness="0,0,0,1"
-                Padding="12,8">
+        <!--  Error banner  -->
+        <Border
+            Grid.Row="0"
+            Padding="12,8"
+            Background="#33FF3B30"
+            BorderBrush="#FFFF3B30"
+            BorderThickness="0,0,0,1"
+            IsVisible="{Binding HasError}">
             <Grid ColumnDefinitions="*,Auto">
-                <SelectableTextBlock Grid.Column="0"
-                                     Text="{Binding ErrorMessage}"
-                                     TextWrapping="Wrap"
-                                     VerticalAlignment="Center" />
-                <Button Grid.Column="1"
-                        Content="Dismiss"
-                        Command="{Binding DismissErrorCommand}"
-                        VerticalAlignment="Center" />
+                <SelectableTextBlock
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Text="{Binding ErrorMessage}"
+                    TextWrapping="Wrap" />
+                <Button
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Command="{Binding DismissErrorCommand}"
+                    Content="Dismiss" />
             </Grid>
         </Border>
 
-        <!-- Metadata grid -->
-        <DataGrid Grid.Row="1"
-                  x:Name="MetadataGrid"
-                  Margin="8,8,8,0"
-                  ItemsSource="{Binding GroupedItems}"
-                  IsReadOnly="True"
-                  ClipboardCopyMode="None"
-                  CanUserSortColumns="False"
-                  CanUserReorderColumns="False"
-                  GridLinesVisibility="Horizontal"
-                  HeadersVisibility="Column"
-                  SelectionMode="Single">
+        <!--  Metadata grid  -->
+        <DataGrid
+            x:Name="MetadataGrid"
+            Grid.Row="1"
+            Margin="8,8,8,0"
+            CanUserReorderColumns="False"
+            CanUserResizeColumns="True"
+            CanUserSortColumns="True"
+            ClipboardCopyMode="None"
+            GridLinesVisibility="Horizontal"
+            HeadersVisibility="Column"
+            IsReadOnly="True"
+            ItemsSource="{Binding GroupedItems}"
+            SelectionMode="Single">
             <DataGrid.ContextMenu>
                 <ContextMenu x:DataType="vm:MainWindowViewModel">
-                    <MenuItem Header="Copy"
-                              InputGesture="Ctrl+C"
-                              Command="{Binding CopyCellCommand}" />
-                    <MenuItem Header="Extract data…"
-                              Command="{Binding ExtractBinaryCommand}"
-                              IsVisible="{Binding SelectedTag, Converter={x:Static conv:ExtractableTagConverter.Instance}}" />
+                    <MenuItem
+                        Command="{Binding CopyCellCommand}"
+                        Header="Copy"
+                        InputGesture="Ctrl+C" />
+                    <MenuItem
+                        Command="{Binding ExtractBinaryCommand}"
+                        Header="Extract data…"
+                        IsVisible="{Binding SelectedTag, Converter={x:Static conv:ExtractableTagConverter.Instance}}" />
                     <Separator />
                     <MenuItem Header="Columns">
-                        <MenuItem Header="Index" ToggleType="CheckBox" IsChecked="{Binding ShowIndex, Mode=TwoWay}" />
-                        <MenuItem Header="Tag ID" ToggleType="CheckBox" IsChecked="{Binding ShowTagId, Mode=TwoWay}" />
-                        <MenuItem Header="Tag Name" ToggleType="CheckBox" IsChecked="{Binding ShowTagName, Mode=TwoWay}" />
-                        <MenuItem Header="Value" ToggleType="CheckBox" IsChecked="{Binding ShowValue, Mode=TwoWay}" />
+                        <MenuItem
+                            Header="Index"
+                            IsChecked="{Binding ShowIndex, Mode=TwoWay}"
+                            ToggleType="CheckBox" />
+                        <MenuItem
+                            Header="Tag ID"
+                            IsChecked="{Binding ShowTagId, Mode=TwoWay}"
+                            ToggleType="CheckBox" />
+                        <MenuItem
+                            Header="Tag Name"
+                            IsChecked="{Binding ShowTagName, Mode=TwoWay}"
+                            ToggleType="CheckBox" />
+                        <MenuItem
+                            Header="Value"
+                            IsChecked="{Binding ShowValue, Mode=TwoWay}"
+                            ToggleType="CheckBox" />
                     </MenuItem>
                 </ContextMenu>
             </DataGrid.ContextMenu>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="#" Tag="Index" Width="Auto"
-                                    Binding="{CompiledBinding Index, DataType=models:ExifTagItem}" />
-                <DataGridTextColumn Header="Tag ID" Tag="TagId" Width="Auto"
-                                    Binding="{CompiledBinding TagId, DataType=models:ExifTagItem}" />
-                <DataGridTextColumn Header="Tag Name" Tag="TagName" Width="Auto"
-                                    Binding="{CompiledBinding TagName, DataType=models:ExifTagItem}" />
-                <DataGridTextColumn Header="Value" Tag="Value" Width="*"
-                                    Binding="{CompiledBinding TagValue, DataType=models:ExifTagItem}" />
+                <!--  Template columns give explicit control over cell text wrapping (rows grow to fit).  -->
+                <DataGridTemplateColumn
+                    Width="Auto"
+                    MinWidth="40"
+                    Header="#"
+                    Tag="Index">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="models:ExifTagItem">
+                            <TextBlock
+                                Padding="8,4"
+                                VerticalAlignment="Top"
+                                Text="{CompiledBinding Index}"
+                                TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn
+                    Width="Auto"
+                    MinWidth="70"
+                    Header="Tag ID"
+                    Tag="TagId">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="models:ExifTagItem">
+                            <TextBlock
+                                Padding="8,4"
+                                VerticalAlignment="Top"
+                                Text="{CompiledBinding TagId}"
+                                TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn
+                    Width="Auto"
+                    MinWidth="120"
+                    Header="Tag Name"
+                    Tag="TagName">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="models:ExifTagItem">
+                            <TextBlock
+                                Padding="8,4"
+                                VerticalAlignment="Top"
+                                Text="{CompiledBinding TagName}"
+                                TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn
+                    Width="*"
+                    MinWidth="150"
+                    Header="Value"
+                    Tag="Value">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate DataType="models:ExifTagItem">
+                            <TextBlock
+                                Padding="8,4"
+                                VerticalAlignment="Top"
+                                Text="{CompiledBinding TagValue}"
+                                TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Footer: command preview + actions -->
-        <StackPanel Grid.Row="2" Margin="8" Spacing="10">
+        <!--  Footer: command preview + actions  -->
+        <StackPanel
+            Grid.Row="2"
+            Margin="8"
+            Spacing="10">
 
-            <Border IsVisible="{Binding ShowCommandPreview}"
-                    Background="{DynamicResource SystemControlBackgroundListLowBrush}"
-                    BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    MaxHeight="80"
-                    Padding="10,6">
+            <Border
+                MaxHeight="80"
+                Padding="10,6"
+                Background="{DynamicResource SystemControlBackgroundListLowBrush}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                IsVisible="{Binding ShowCommandPreview}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <SelectableTextBlock Text="{Binding CommandPreview}"
-                                         FontFamily="Cascadia Mono,Consolas,monospace"
-                                         FontSize="12"
-                                         TextWrapping="Wrap"
-                                         Opacity="0.85" />
+                    <SelectableTextBlock
+                        FontFamily="Cascadia Mono,Consolas,monospace"
+                        FontSize="12"
+                        Opacity="0.85"
+                        Text="{Binding CommandPreview}"
+                        TextWrapping="Wrap" />
                 </ScrollViewer>
             </Border>
 
             <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                <Button Grid.Column="0"
-                        Classes="accent"
-                        Command="{Binding OpenFileCommand}"
-                        ToolTip.Tip="Open file… (Ctrl+O)"
-                        Content="Open file…" />
+                <Button
+                    Grid.Column="0"
+                    Classes="accent"
+                    Command="{Binding OpenFileCommand}"
+                    Content="Open file…"
+                    ToolTip.Tip="Open file… (Ctrl+O)" />
 
-                <Button Grid.Column="1"
-                        Margin="10,0,0,0"
-                        Command="{Binding CopyCellCommand}"
-                        ToolTip.Tip="Copy selected value (Ctrl+C)"
-                        Content="Copy" />
+                <Button
+                    Grid.Column="1"
+                    Margin="10,0,0,0"
+                    Command="{Binding CopyCellCommand}"
+                    Content="Copy"
+                    ToolTip.Tip="Copy selected value (Ctrl+C)" />
 
-                <DropDownButton Grid.Column="2"
-                                Margin="10,0,0,0"
-                                IsEnabled="{Binding HasItems}"
-                                ToolTip.Tip="Export metadata"
-                                Content="Export as…">
+                <DropDownButton
+                    Grid.Column="2"
+                    Margin="10,0,0,0"
+                    Content="Export as…"
+                    IsEnabled="{Binding HasItems}"
+                    ToolTip.Tip="Export metadata">
                     <DropDownButton.Flyout>
                         <MenuFlyout Placement="TopEdgeAlignedRight">
-                            <MenuItem Header="Text file…" InputGesture="Ctrl+1" Command="{Binding ExportTextCommand}" />
-                            <MenuItem Header="CSV file…" InputGesture="Ctrl+2" Command="{Binding ExportCsvCommand}" />
-                            <MenuItem Header="JSON file…" InputGesture="Ctrl+3" Command="{Binding ExportJsonCommand}" />
+                            <MenuItem
+                                Command="{Binding ExportTextCommand}"
+                                Header="Text file…"
+                                InputGesture="Ctrl+1" />
+                            <MenuItem
+                                Command="{Binding ExportCsvCommand}"
+                                Header="CSV file…"
+                                InputGesture="Ctrl+2" />
+                            <MenuItem
+                                Command="{Binding ExportJsonCommand}"
+                                Header="JSON file…"
+                                InputGesture="Ctrl+3" />
                         </MenuFlyout>
                     </DropDownButton.Flyout>
                 </DropDownButton>
 
-                <DropDownButton Grid.Column="3"
-                                Margin="10,0,0,0"
-                                Content="Menu…">
+                <DropDownButton
+                    Grid.Column="3"
+                    Margin="10,0,0,0"
+                    Content="Menu…">
                     <DropDownButton.Flyout>
                         <MenuFlyout Placement="TopEdgeAlignedRight">
-                            <MenuItem Header="Settings…" InputGesture="Ctrl+," Command="{Binding OpenSettingsCommand}" />
+                            <MenuItem
+                                Command="{Binding OpenSettingsCommand}"
+                                Header="Settings…"
+                                InputGesture="Ctrl+," />
                             <Separator />
-                            <MenuItem Header="Check for update…" Command="{Binding CheckForUpdateCommand}" />
-                            <MenuItem Header="About…" InputGesture="F1" Command="{Binding OpenAboutCommand}" />
+                            <MenuItem Command="{Binding CheckForUpdateCommand}" Header="Check for update…" />
+                            <MenuItem
+                                Command="{Binding OpenAboutCommand}"
+                                Header="About…"
+                                InputGesture="F1" />
                             <Separator />
-                            <MenuItem Header="Exit" InputGesture="Escape" Command="{Binding ExitCommand}" />
+                            <MenuItem
+                                Command="{Binding ExitCommand}"
+                                Header="Exit"
+                                InputGesture="Escape" />
                         </MenuFlyout>
                     </DropDownButton.Flyout>
                 </DropDownButton>

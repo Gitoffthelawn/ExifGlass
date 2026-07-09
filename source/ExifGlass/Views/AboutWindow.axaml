@@ -1,61 +1,87 @@
-<views:StyledWindow xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-                    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                    xmlns:views="using:ExifGlass.Views"
-                    xmlns:vm="using:ExifGlass.ViewModels"
-                    mc:Ignorable="d" d:DesignWidth="440" d:DesignHeight="520"
-                    x:Class="ExifGlass.Views.AboutWindow"
-                    x:DataType="vm:AboutViewModel"
-                    Title="About"
-                    Width="440"
-                    CanResize="False"
-                    SizeToContent="Height"
-                    WindowStartupLocation="CenterOwner"
-                    Icon="/Assets/exifglass_icon_512.ico">
+<views:StyledWindow
+    x:Class="ExifGlass.Views.AboutWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="using:ExifGlass.Views"
+    xmlns:vm="using:ExifGlass.ViewModels"
+    mc:Ignorable="d"
+    d:DesignHeight="520"
+    d:DesignWidth="440"
+    x:DataType="vm:AboutViewModel"
+    Title="About"
+    Width="440"
+    CanResize="False"
+    Icon="/Assets/exifglass_icon_512.ico"
+    SizeToContent="Height"
+    WindowStartupLocation="CenterOwner">
 
     <Window.KeyBindings>
-        <KeyBinding Gesture="Escape" Command="{Binding CloseCommand}" />
+        <KeyBinding Command="{Binding CloseCommand}" Gesture="Escape" />
     </Window.KeyBindings>
 
     <Grid RowDefinitions="*,Auto">
-        <StackPanel Grid.Row="0" Margin="24,24,24,12" Spacing="6">
+        <StackPanel
+            Grid.Row="0"
+            Margin="24,24,24,12"
+            Spacing="6">
 
             <StackPanel Orientation="Horizontal" Spacing="16">
-                <Image Width="72" Height="72"
-                       VerticalAlignment="Top"
-                       Source="/Assets/exifglass_icon_512.ico" />
-                <StackPanel Spacing="2" VerticalAlignment="Center">
-                    <TextBlock FontSize="24" FontWeight="SemiBold"
-                               Foreground="{DynamicResource SystemAccentColor}"
-                               Text="ExifGlass" />
+                <Image
+                    Width="72"
+                    Height="72"
+                    VerticalAlignment="Top"
+                    Source="/Assets/exifglass_icon_512.ico" />
+                <StackPanel VerticalAlignment="Center" Spacing="2">
+                    <TextBlock
+                        FontSize="24"
+                        FontWeight="SemiBold"
+                        Foreground="{DynamicResource SystemAccentColor}"
+                        Text="ExifGlass" />
                     <TextBlock FontSize="15" Text="EXIF metadata viewer" />
-                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+                    <StackPanel
+                        Margin="0,6,0,0"
+                        Orientation="Horizontal"
+                        Spacing="6">
                         <TextBlock FontWeight="SemiBold" Text="Version" />
                         <TextBlock FontWeight="SemiBold" Text="{Binding Version}" />
                     </StackPanel>
                 </StackPanel>
             </StackPanel>
 
-            <TextBlock Margin="0,14,0,0" TextWrapping="Wrap"
-                       Text="Copyright © 2023 – 2025 by Dương Diệu Pháp. All rights reserved." />
+            <TextBlock
+                Margin="0,14,0,0"
+                Text="Copyright © 2023 – 2025 by Dương Diệu Pháp. All rights reserved."
+                TextWrapping="Wrap" />
 
-            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,6,0,0">
+            <StackPanel
+                Margin="0,6,0,0"
+                Orientation="Horizontal"
+                Spacing="6">
                 <TextBlock Text="Website:" />
-                <Button Padding="0" Background="Transparent" BorderThickness="0"
-                        Cursor="Hand"
-                        Command="{Binding OpenWebsiteCommand}">
-                    <TextBlock Foreground="{DynamicResource SystemAccentColor}"
-                               TextDecorations="Underline"
-                               Text="{Binding WebsiteUrl}" />
+                <Button
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Command="{Binding OpenWebsiteCommand}"
+                    Cursor="Hand">
+                    <TextBlock
+                        Foreground="{DynamicResource SystemAccentColor}"
+                        Text="{Binding WebsiteUrl}"
+                        TextDecorations="Underline" />
                 </Button>
             </StackPanel>
 
-            <Button Margin="0,12,0,0"
-                    Command="{Binding OpenStoreCommand}"
-                    Content="Get ExifGlass on the Microsoft Store" />
+            <Button
+                Margin="0,12,0,0"
+                Command="{Binding OpenStoreCommand}"
+                Content="Get ExifGlass on the Microsoft Store" />
 
-            <Expander Margin="0,14,0,0" Header="Credits" HorizontalAlignment="Stretch">
+            <Expander
+                Margin="0,14,0,0"
+                HorizontalAlignment="Stretch"
+                Header="Credits">
                 <ScrollViewer MaxHeight="150" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="4,8" Spacing="8">
                         <StackPanel>
@@ -85,16 +111,21 @@
         </StackPanel>
 
         <Border Grid.Row="1" Padding="24,12">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
-                <Button MinWidth="120"
-                        HorizontalContentAlignment="Center"
-                        Command="{Binding CheckForUpdateCommand}"
-                        Content="Check for update" />
-                <Button MinWidth="88"
-                        Classes="accent"
-                        HorizontalContentAlignment="Center"
-                        Command="{Binding CloseCommand}"
-                        Content="Close" />
+            <StackPanel
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="10">
+                <Button
+                    MinWidth="120"
+                    HorizontalContentAlignment="Center"
+                    Command="{Binding CheckForUpdateCommand}"
+                    Content="Check for update" />
+                <Button
+                    MinWidth="88"
+                    HorizontalContentAlignment="Center"
+                    Classes="accent"
+                    Command="{Binding CloseCommand}"
+                    Content="Close" />
             </StackPanel>
         </Border>
     </Grid>
