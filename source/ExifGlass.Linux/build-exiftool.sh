@@ -56,9 +56,10 @@ fi
 if ! command -v pp >/dev/null 2>&1; then
   cat >&2 <<'EOF'
 ERROR: PAR::Packer (`pp`) is not installed -- it is required to compile ExifTool.
-Install it plus ExifTool's helper modules, e.g. on Debian/Ubuntu:
+Install it plus ExifTool's helper modules, e.g. on Debian/Ubuntu (libperl-dev supplies the Perl
+headers pp links its C loader against -- build-essential alone is not enough):
 
-  sudo apt-get install -y perl cpanminus build-essential
+  sudo apt-get install -y perl cpanminus build-essential libperl-dev
   sudo cpanm --notest PAR::Packer Archive::Zip Compress::Zlib Digest::SHA \
                       IO::Compress::Bzip2 Time::Piece IO::String
 
@@ -89,15 +90,28 @@ pp -o "$OUT" \
    "$SRC/exiftool"
 
 chmod +x "$OUT"
-# PAR executables strip cleanly; shrink the binary when `strip` is available.
-command -v strip >/dev/null 2>&1 && strip "$OUT" 2>/dev/null || true
+# NOTE: do NOT `strip` the result. PAR appends its archive (the embedded Perl + modules + the
+# exiftool script) to the ELF as a trailing overlay; modern binutils `strip` rewrites the ELF and
+# discards that overlay, silently truncating the binary so it degrades to a bare PAR loader
+# ("par.pl: Can't open perl script ..."). The size saving isn't worth shipping a broken tool.
 
 # --- Verify it runs standalone (no system Perl needed) -----------------------
-VER="$("$OUT" -ver 2>/dev/null || true)"
-if [ -z "$VER" ]; then
-  echo "ERROR: the built ExifTool did not run ('$OUT' -ver returned nothing)." >&2
-  echo "       If running it reports \"Can't locate <Module>.pm\", add '-M <Module>' to the pp" >&2
-  echo "       command above and rebuild. Also test a real image: '$OUT' -G -t <image>." >&2
+# Check stdout carries a real version number (a truncated/broken PAR binary prints its errors to
+# stderr and leaves stdout empty), and that stderr is clean.
+ERR_LOG="$(mktemp)"
+trap 'rm -f "$ERR_LOG"' EXIT
+VER="$("$OUT" -ver 2>"$ERR_LOG" || true)"
+if ! printf '%s' "$VER" | grep -Eq '^[0-9]+\.[0-9]+'; then
+  echo "ERROR: the built ExifTool did not run ('$OUT' -ver did not print a version)." >&2
+  [ -s "$ERR_LOG" ] && { echo "       stderr was:" >&2; sed 's/^/         /' "$ERR_LOG" >&2; }
+  echo "       If it reports \"Can't locate <Module>.pm\", add '-M <Module>' to the pp command" >&2
+  echo "       above and rebuild. If it mentions PAR/par.pl or a missing archive, the binary was" >&2
+  echo "       truncated (e.g. by 'strip') -- rebuild without stripping." >&2
+  exit 1
+fi
+if [ -s "$ERR_LOG" ]; then
+  echo "ERROR: ExifTool ran but printed to stderr (the binary may be partially broken):" >&2
+  sed 's/^/         /' "$ERR_LOG" >&2
   exit 1
 fi
 echo "OK: built ExifTool $VER ($(du -h "$OUT" | cut -f1))"

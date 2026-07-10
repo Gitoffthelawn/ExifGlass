@@ -4,8 +4,9 @@
   "tasks": [
     // --- ExifTool: compile the self-contained binary (Perl embedded via PAR::Packer) -----------
     // Linux/macOS only -- pp bundles the host Perl and can't cross-build; run these on Linux or WSL
-    // (per target architecture). Requires PAR::Packer + ExifTool's helper modules:
-    //   sudo apt-get install -y perl cpanminus build-essential
+    // (per target architecture). Requires PAR::Packer + ExifTool's helper modules (libperl-dev
+    // supplies the Perl headers pp links its C loader against; build-essential alone is not enough):
+    //   sudo apt-get install -y perl cpanminus build-essential libperl-dev
     //   sudo cpanm --notest PAR::Packer Archive::Zip Compress::Zlib Digest::SHA \
     //                       IO::Compress::Bzip2 Time::Piece IO::String
     // Output is cached per-RID under __assets/exiftool/unix/build/<rid>/ and picked up by the
