@@ -37,22 +37,42 @@
     <ProjectReference Include="..\ExifGlass.Lib\ExifGlass.Lib.csproj" />
   </ItemGroup>
 
-  <!-- Bundle the official ExifTool Perl distribution (exiftool.org's Image-ExifTool release) next
-       to the app: the `exiftool` script + its lib/, dropped in unmodified under the repo-root
-       __assets\ (also serves a future macOS head). The script prepends its own sibling lib/ to
-       Perl's @INC, so the two must stay together in the output; it runs on the system Perl via its
-       `#!/usr/bin/env perl` shebang, and Program.Main sets its Unix executable bit at startup (a
-       publish from a non-Unix host can't carry it). ExifTool's LICENSE ships alongside. -->
+  <!-- ExifTool bundling. Official exiftool.org releases live under source\__assets\exiftool (see
+       CLAUDE.md). Prefer a self-contained `exiftool` binary (Perl embedded via PAR::Packer) so the
+       shipped app needs no system Perl; it is compiled out-of-band by the VS Code
+       "build-exiftool-<rid>" task (pp can't cross-build, so there is deliberately no MSBuild step).
+       When that binary hasn't been built, the Perl script + lib/ is bundled instead and runs on the
+       target's system Perl. The decision is made here at evaluation time by Exists('$(ExifToolBinary)'). -->
+  <PropertyGroup>
+    <ExifToolUnixDir>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', '__assets', 'exiftool', 'unix'))</ExifToolUnixDir>
+    <!-- The VS Code task caches compiled binaries per-RID here; match the build/publish RID,
+         else fall back to the SDK host RID. -->
+    <ExifToolRid Condition="'$(ExifToolRid)' == ''">$(RuntimeIdentifier)</ExifToolRid>
+    <ExifToolRid Condition="'$(ExifToolRid)' == ''">$(NETCoreSdkRuntimeIdentifier)</ExifToolRid>
+    <ExifToolBinary>$([MSBuild]::NormalizePath('$(ExifToolUnixDir)', 'build', '$(ExifToolRid)', 'exiftool'))</ExifToolBinary>
+  </PropertyGroup>
+
   <ItemGroup>
-    <None Include="..\__assets\exiftool\unix\exiftool" Condition="Exists('..\__assets\exiftool\unix\exiftool')">
-      <Link>exiftool</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <!-- ExifTool's GPL license always ships (stays tracked in git even though the binaries do not). -->
     <None Include="..\__assets\exiftool\LICENSE" Condition="Exists('..\__assets\exiftool\LICENSE')">
       <Link>exiftool.LICENSE.txt</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\__assets\exiftool\unix\lib\**\*">
+
+    <!-- Preferred: the self-contained binary compiled by the "build-exiftool-<rid>" VS Code task. -->
+    <None Include="$(ExifToolBinary)" Condition="Exists('$(ExifToolBinary)')">
+      <Link>exiftool</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <!-- Fallback: the Perl script + lib/ (needs Perl at runtime) when no binary has been built. -->
+    <None Include="..\__assets\exiftool\unix\exiftool"
+          Condition="!Exists('$(ExifToolBinary)') AND Exists('..\__assets\exiftool\unix\exiftool')">
+      <Link>exiftool</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\__assets\exiftool\unix\lib\**\*"
+          Condition="!Exists('$(ExifToolBinary)') AND Exists('..\__assets\exiftool\unix\exiftool')">
       <Link>lib\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -90,7 +90,7 @@
                     <TextBlock FontSize="32" Text="🛍️" />
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock FontWeight="SemiBold" Text="Get ExifGlass" />
-                        <TextBlock FontWeight="SemiBold" Text="from the Microsoft Store" />
+                        <TextBlock FontWeight="SemiBold" Text="from Microsoft Store" />
                     </StackPanel>
                 </StackPanel>
             </Button>

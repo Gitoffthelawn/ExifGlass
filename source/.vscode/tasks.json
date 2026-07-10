@@ -1,0 +1,195 @@
+{
+  // Tasks assume the workspace folder is this `source/` directory.
+  "version": "2.0.0",
+  "tasks": [
+    // --- ExifTool: compile the self-contained binary (Perl embedded via PAR::Packer) -----------
+    // Linux/macOS only -- pp bundles the host Perl and can't cross-build; run these on Linux or WSL
+    // (per target architecture). Requires PAR::Packer + ExifTool's helper modules:
+    //   sudo apt-get install -y perl cpanminus build-essential
+    //   sudo cpanm --notest PAR::Packer Archive::Zip Compress::Zlib Digest::SHA \
+    //                       IO::Compress::Bzip2 Time::Piece IO::String
+    // Output is cached per-RID under __assets/exiftool/unix/build/<rid>/ and picked up by the
+    // matching build/publish task (via ExifGlass.Linux.csproj). Skips if already built; the app
+    // tasks below depend on it, so add "--force" to build-exiftool.sh by hand to force a rebuild.
+    {
+      "label": "build-exiftool-linux-x64",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/ExifGlass.Linux/build-exiftool.sh",
+        "${workspaceFolder}/__assets/exiftool/unix",
+        "${workspaceFolder}/__assets/exiftool/unix/build/linux-x64/exiftool"
+      ],
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "build-exiftool-linux-arm64",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/ExifGlass.Linux/build-exiftool.sh",
+        "${workspaceFolder}/__assets/exiftool/unix",
+        "${workspaceFolder}/__assets/exiftool/unix/build/linux-arm64/exiftool"
+      ],
+      "problemMatcher": [],
+      "group": "build"
+    },
+
+
+    // --- Build tasks (Debug) -------------------------------------------------------------------
+    {
+      "label": "build-win-x64",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/ExifGlass.Win32/ExifGlass.Win32.csproj",
+        "-c",
+        "Debug",
+        "-r",
+        "win-x64",
+        "--no-incremental"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "build-win-arm64",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/ExifGlass.Win32/ExifGlass.Win32.csproj",
+        "-c",
+        "Debug",
+        "-r",
+        "win-arm64",
+        "--no-incremental"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      // Compiles the self-contained ExifTool first, then the app; the csproj bundles that binary.
+      "label": "build-linux-x64",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/ExifGlass.Linux/ExifGlass.Linux.csproj",
+        "-c",
+        "Debug",
+        "-r",
+        "linux-x64",
+        "--no-incremental"
+      ],
+      "problemMatcher": "$msCompile",
+      "dependsOn": [
+        "build-exiftool-linux-x64"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+    {
+      "label": "build-linux-arm64",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/ExifGlass.Linux/ExifGlass.Linux.csproj",
+        "-c",
+        "Debug",
+        "-r",
+        "linux-arm64",
+        "--no-incremental"
+      ],
+      "problemMatcher": "$msCompile",
+      "dependsOn": [
+        "build-exiftool-linux-arm64"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+
+
+    // --- Publish tasks (Release; self-contained NativeAOT is configured in the csprojs) --------
+    // NativeAOT can't cross-compile, so publish each head on its own OS (Linux/WSL for linux-*).
+    {
+      "label": "publish-win-x64",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "${workspaceFolder}/ExifGlass.Win32/ExifGlass.Win32.csproj",
+        "-c",
+        "Release",
+        "-r",
+        "win-x64",
+        "-o",
+        "${workspaceFolder}/__artifacts/publish/win-x64"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "publish-win-arm64",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "${workspaceFolder}/ExifGlass.Win32/ExifGlass.Win32.csproj",
+        "-c",
+        "Release",
+        "-r",
+        "win-arm64",
+        "-o",
+        "${workspaceFolder}/__artifacts/publish/win-arm64"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "publish-linux-x64",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "${workspaceFolder}/ExifGlass.Linux/ExifGlass.Linux.csproj",
+        "-c",
+        "Release",
+        "-r",
+        "linux-x64",
+        "-o",
+        "${workspaceFolder}/__artifacts/publish/linux-x64"
+      ],
+      "problemMatcher": "$msCompile",
+      "dependsOn": [
+        "build-exiftool-linux-x64"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+    {
+      "label": "publish-linux-arm64",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "publish",
+        "${workspaceFolder}/ExifGlass.Linux/ExifGlass.Linux.csproj",
+        "-c",
+        "Release",
+        "-r",
+        "linux-arm64",
+        "-o",
+        "${workspaceFolder}/__artifacts/publish/linux-arm64"
+      ],
+      "problemMatcher": "$msCompile",
+      "dependsOn": [
+        "build-exiftool-linux-arm64"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    }
+  ]
+}
