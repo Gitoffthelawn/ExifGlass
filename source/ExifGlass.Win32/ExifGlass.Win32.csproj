@@ -43,10 +43,17 @@
     <ProjectReference Include="..\ExifGlass.Lib\ExifGlass.Lib.csproj" />
   </ItemGroup>
 
-  <!-- Bundle ExifTool next to the app. -->
+  <!-- Bundle the official ExifTool Windows release (exiftool.org) next to the app: the launcher
+       exiftool.exe plus its exiftool_files\ folder (bundled Strawberry Perl + exiftool.pl + lib).
+       Dropped in unmodified under the repo-root __assets\ so every platform head draws ExifTool
+       from one shared place; to update, replace __assets\exiftool\win\ with a newer release. -->
   <ItemGroup>
-    <None Include="Assets\exiftool\win\exiftool.exe" Condition="Exists('Assets\exiftool\win\exiftool.exe')">
+    <None Include="..\__assets\exiftool\win\exiftool.exe" Condition="Exists('..\__assets\exiftool\win\exiftool.exe')">
       <Link>exiftool.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\__assets\exiftool\win\exiftool_files\**\*">
+      <Link>exiftool_files\%(RecursiveDir)%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

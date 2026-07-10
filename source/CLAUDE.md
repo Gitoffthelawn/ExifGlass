@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ExifGlass is an EXIF-metadata viewer that wraps the command-line **ExifTool** (exiftool.org). It runs standalone (CLI arg, drag-drop, file picker) and plugs into both **ImageGlass 10** (via `ImageGlass.SDK`) and **ImageGlass 9** (via the Windows-only `ImageGlass.Tools`) as an integrated tool that live-updates as the user navigates images.
 
-This directory (`source/`) is a ground-up rewrite on **.NET 10 / Avalonia 12**, built **NativeAOT, Windows-first**. It follows the ImageGlass multi-project layout (`D:\_GITHUB\@d2phap\ImageGlass\source`): a **cross-platform `net10.0` library (`ExifGlass.Lib`) holds all logic + UI**, and a thin **per-platform executable head** references it. Only the Windows head (`ExifGlass.Win32`, `net10.0-windows`, ships `ExifGlass.exe`) exists today — macOS/Linux heads (`ExifGlass.Mac`, `ExifGlass.Linux`) are planned and would sit beside it, referencing the same library. The solution is `ExifGlass.slnx`.
+This directory (`source/`) is a ground-up rewrite on **.NET 10 / Avalonia 12**, built **NativeAOT, Windows-first**. It follows the ImageGlass multi-project layout: a **cross-platform `net10.0` library (`ExifGlass.Lib`) holds all logic + UI**, and a thin **per-platform executable head** references it. The Windows head (`ExifGlass.Win32`, `net10.0-windows`, ships `ExifGlass.exe`) and the Linux head (`ExifGlass.Linux`, `net10.0`, ships `ExifGlass`) exist today; a macOS head (`ExifGlass.Mac`) is planned and would sit beside them, referencing the same library. The solution is `ExifGlass.slnx`.
 
 > **Source hygiene:** never reference any prior/"v1"/"old version" in source, comments, or commit messages — write everything as the target design. The repo root contains a `v1/` folder (the previous shipping app) and a v1-era `README.md`; treat both as out of scope for this rewrite and do not import their patterns.
 
@@ -39,15 +39,25 @@ dotnet publish ExifGlass.Win32/ExifGlass.Win32.csproj -r win-x64 -c Release
 
 A clean publish shows **only** the expected ProDataGrid baseline (`IL2104` + `IL3053` on `Avalonia.Controls.DataGrid.dll`). Any other IL warning — and **any `IL3050`** — is a regression to fix, not suppress.
 
+The **Linux head** publishes the same way but NativeAOT can't cross-compile, so it must run on a Linux host (or CI container) — from Windows the ILC link step fails with *"Cross-OS native compilation is not supported."* (the managed compile + trim analysis still run first, so `dotnet build` on Windows validates the code):
+
+```bash
+dotnet publish ExifGlass.Linux/ExifGlass.Linux.csproj -r linux-x64 -c Release   # (-r linux-arm64 also supported)
+# -> ExifGlass.Linux/bin/Release/net10.0/linux-x64/publish/ExifGlass
+```
+
 Run standalone: `ExifGlass.exe "<image>"`. Force a theme for one run without persisting: `ExifGlass.exe /Theme=Dark "<image>"` (see CLI overrides below). Force-kill leaves the `exiftool -stay_open` child orphaned — clean up with `Get-Process ExifGlass,exiftool | Stop-Process -Force`.
 
 ## Architecture (the big picture)
 
-Three projects (mirroring the ImageGlass `Lib` + platform-head layout), split so all logic stays testable without a running UI and the Windows-only integration is quarantined to the executable head:
+Four projects (mirroring the ImageGlass `Lib` + platform-head layout), split so all logic stays testable without a running UI and the Windows-only integration is quarantined to the executable head:
 
 - **`ExifGlass.Lib`** (`net10.0`, `IsAotCompatible=true`, **cross-platform**) — everything shared: all pure logic (ExifTool invocation/parsing, exports, config load/merge, update check, path resolution, version compare) **and** the Avalonia UI (`App`, Views, ViewModels, Services, `Composition`, the `Integration` seam for standalone + ImageGlass 10 hosts, Styles, brand icon assets). The logic files keep their `ExifGlass.Core.*` namespaces (the former Core project was folded in here); the UI uses `ExifGlass.*`. Assembly name `ExifGlass.Lib` (so XAML resources are `avares://ExifGlass.Lib/…`); root namespace `ExifGlass`.
-- **`ExifGlass.Win32`** — the **Windows executable head** (`net10.0-windows`, `AssemblyName=ExifGlass` → `ExifGlass.exe`, `PublishAot`, `TrimMode=full`). Holds only `Program.cs`, the ImageGlass 9 host, `app.manifest`, the app icon, and the bundled `exiftool.exe`. It is the **only** project allowed to reference the Windows-only `ImageGlass.Tools` package. Planned `ExifGlass.Mac` / `ExifGlass.Linux` heads would sit beside it and reference the same `ExifGlass.Lib`.
+- **`ExifGlass.Win32`** — the **Windows executable head** (`net10.0-windows`, `AssemblyName=ExifGlass` → `ExifGlass.exe`, `PublishAot`, `TrimMode=full`). Holds only `Program.cs`, the ImageGlass 9 host, `app.manifest`, the app icon, and (from `__assets`, see below) the bundled ExifTool Windows build — the `exiftool.exe` launcher + its `exiftool_files\` runtime. It is the **only** project allowed to reference the Windows-only `ImageGlass.Tools` package.
+- **`ExifGlass.Linux`** — the **Linux executable head** (`net10.0`, `AssemblyName=ExifGlass` → `ExifGlass`, `PublishAot`, `TrimMode=full`, RIDs `linux-x64;linux-arm64`). Holds only `Program.cs` and (from `__assets`) the bundled ExifTool **Perl distribution** — the `exiftool` script + its `lib/`, run on the system Perl via the script's `#!/usr/bin/env perl` shebang (so Perl must be on PATH; the resolver's PATH fallback covers a distro-installed ExifTool otherwise). It supports standalone + ImageGlass 10 (SDK) only: it sets no `SourceHostFactory`, so the library's default host selection applies, and it does **not** reference `ImageGlass.Tools` (ImageGlass 9 is Windows-only). `Program.Main` best-effort-sets the bundled script's Unix executable bit at startup, since a publish produced on a non-Unix host can't carry it. A planned `ExifGlass.Mac` head would sit beside it, referencing the same `ExifGlass.Lib`.
 - **`ExifGlass.Lib.Test`** — xUnit over the library (references `ExifGlass.Lib`).
+
+**Bundled ExifTool lives in one shared place.** The **`source/__assets/exiftool/`** folder holds the official [exiftool.org](https://exiftool.org) release artifacts, dropped in unmodified (do not hand-curate/patch — the point is a trivial version bump): `win/` is the Windows compiled build (`exiftool.exe`, renamed from the release's `exiftool(-k).exe`, plus its `exiftool_files/` Strawberry-Perl runtime + `lib/`); `unix/` is the Perl distribution (`exiftool` script + `lib/`) used by Linux and a future macOS head. Each platform head's csproj copies its own subset next to the app via `..\__assets\exiftool\…` with `CopyToOutputDirectory`. To update ExifTool, replace the folder with a newer release (Windows: the `_64.zip`, renaming the exe; Unix: the `Image-ExifTool` tarball's `exiftool` + `lib/`). Both bundles are committed to git (~55 MB total) — the two per-platform Perl `lib/` trees are unavoidably duplicated across the official releases.
 
 **Central build management** (same as ImageGlass): `Directory.Packages.props` pins every NuGet version (`ManagePackageVersionsCentrally`; csprojs carry versionless `<PackageReference>`s). `Directory.Build.props` single-sources the app version (`<ExifGlassVersion>`) + product identity; `Directory.Build.targets` propagates it to `Version`/`FileVersion`/`InformationalVersion` for every project. `Helpers/AppInfo` reads the *library's* embedded informational version, so it must stay a clean numeric version (no build-metadata suffix) or the update-check comparison breaks.
 
@@ -62,9 +72,28 @@ Three projects (mirroring the ImageGlass `Lib` + platform-head layout), split so
 
 `LoadFileAsync` owns a **CTS swap**: each load cancels the previous token, so during rapid navigation the newest file always wins and superseded reads are silently discarded (`OperationCanceledException` swallowed).
 
-**ExifTool access.** `Services/ExifToolService` is the seam (`IExifToolService`). Reads go through a persistent **`exiftool -stay_open` daemon** (`ExifToolDaemon`) for fast live navigation; binary extraction and `-ver` validation stay one-shot via `IProcessRunner`/CliWrap. `Helpers/ExifToolCommand` is the single argv builder feeding both the real run and the footer command preview, so they can't drift. The exe path resolves Settings-override → bundled → PATH (`ExifToolPathResolver`), cross-platform.
+**ExifTool access.** `Services/ExifToolService` is the seam (`IExifToolService`); the full read pipeline is documented in **How EXIF metadata loading works** below.
 
 **Settings.** `ISettingsService` holds a mutable `AppConfig`; layered load is defaults → JSON file → CLI `/Key=Value` overrides. Config path is per-OS (`%LOCALAPPDATA%\ExifGlass\exifglass.config.json` on Windows) via `Helpers/AppPaths`. Persisted **only** on window close (`SaveOnClose`) and after an update check (stamps `LastUpdateCheck`).
+
+## How EXIF metadata loading works
+
+Every navigation — CLI file, drag-drop, picker, or an ImageGlass pipe event — funnels into `MainWindowViewModel.LoadFileAsync(path)`, which owns the **CTS swap** (each load cancels the previous token so the newest file always wins; superseded reads throw `OperationCanceledException`, which is swallowed). It shows the command preview immediately, sets `IsLoading`, then awaits `IExifToolService.ReadAsync`. On success the grid is replaced wholesale; on failure the **last good grid is kept** and the error surfaces in a dismissible banner.
+
+The read itself, in `Services/ExifToolService.ReadAsync`:
+
+1. **Resolve the executable** via `ExifToolPathResolver`: Settings-override → bundled ExifTool (`exiftool.exe` on Windows, the `exiftool` Perl script on Linux) → PATH (cross-platform).
+2. **ANSI-path workaround (Windows-only).** ExifTool can't open paths with codepoints above the ANSI range, so `PlatformInfo.NeedsAnsiPathWorkaround` files are copied to an ASCII temp path (`AppPaths.TempDir`) and read from there; the temp copy is tracked and swept by `CleanupTempFiles`. The real `File Name` value is remapped back onto the result so the grid shows the original name.
+3. **Build the argv** through `Helpers/ExifToolCommand.BuildArgs` — the *single* source of truth shared with the footer preview (`BuildPreview`) so a run and its displayed command can't drift. Base flags are `-fast -G -t -m -q -H` (tab-delimited, family-0 group, hex tag id, fast/quiet), then any user `ExifToolArguments` (tokenized honoring double-quotes), then `-charset UTF8`, then the file path.
+4. **Execute on the persistent daemon.** `ExifToolDaemon` is one long-lived `exiftool -stay_open True -@ -` process — feeding argument sets over stdin and reading to a sentinel removes the per-read interpreter-startup cost, which is what keeps live navigation fast. Access is serialized (one command at a time via a `SemaphoreSlim`); each command is numbered (`-execute<seq>`) and its stdout is read until `{ready<seq>}`, while stderr is framed the same way with `-echo4` + `{igerr<seq>}`. A 30 s per-command timeout, a broken pipe, or a stall kills and transparently restarts the process, retrying once. Raw `Process` piping keeps it AOT-safe.
+5. **Parse** stdout with `Helpers/ExifToolOutputParser.Parse`: each row is `Group\tTagId\tTagName\tValue` split at most 4 ways (embedded tabs fold into the value); a line that doesn't split into 4 fields is treated as a **continuation** of the previous value (values can contain embedded newlines). Rows are 1-indexed into `ExifTagItem`.
+6. **Shape the result** as `ExifReadResult(tags, preview, success, error)`. The daemon has no per-command exit code, so **empty output ⇒ failure** — the message is the trimmed stderr, or "No metadata was found for this file." when stderr is also empty.
+
+Related paths that do **not** use the daemon:
+- **Binary extraction** (`ExtractBinaryTagAsync`) is one-shot via `IProcessRunner`/CliWrap, using `-b -w!` to write the tag to a temp dir then moving it to the chosen destination. A row offers this only when `ExifTagItem.CanExtractBinary` is true (ExifTool's value contains `", use -b option to extract"`).
+- **Validation** (`ValidateAsync`) runs `-ver` one-shot for the startup self-check; `ExifToolOutputParser.LooksValid` then confirms a parsed row carries a hex tag id, catching a silent ExifTool output-format change.
+
+The parsed `ExifTagItem` rows feed the reflection-free grid (grouping/sorting described under the AOT invariants below).
 
 ## AOT is the through-line — preserve these invariants
 
@@ -82,8 +111,7 @@ NativeAOT forbids runtime codegen and trims unused members, so every choice avoi
 - The SDK's `OnXxx` hooks are `protected internal virtual`; overriding them from this assembly must use **`protected override`** (not `protected internal` — the `internal` part is inaccessible across assemblies). `ToolId` is `public abstract` → `public override` and must equal the `igconfig.json` entry (`"Tool_ExifGlass"`).
 - SDK callbacks fire on the pipe read-loop thread, never the UI thread — **every** `FileRequested`/`CloseRequested` raise marshals via `Dispatcher.UIThread.Post`. `OnPhotoChanged` is a synchronous `void`: never await inline, never let it throw. `RunAsync` blocks in the pipe loop, so `Start()` runs it on a background `Task`.
 - The pipe says *which file & when*; ExifTool remains the source of truth (always run the local read on the reported path).
-
-Full details + how to verify the pipe without ImageGlass (a mock `NamedPipeServerStream` host) are in the memory `imageglass-sdk-tool-integration`.
+- The pipe can be verified without ImageGlass by driving a mock `NamedPipeServerStream` host.
 
 ## Conventions
 
@@ -99,5 +127,3 @@ Full details + how to verify the pipe without ImageGlass (a mock `NamedPipeServe
 - CLI overrides (`/Theme=Dark`, `/CheckForUpdates=false`, `/WindowWidth=900`, …) are in-memory only; config persists solely on window close, so **force-kill** after screenshotting to avoid mutating the user's real config.
 - The NativeAOT window renders on a GPU surface — GDI `CopyFromScreen` returns black; use `PrintWindow(hwnd, hdc, 2)`.
 - The persistent daemon means a plain force-kill can orphan `exiftool`; sweep both processes afterward.
-
-The full rewrite plan (locked decisions, phasing M1–M4, risks) lives at `~/.claude/plans/create-the-complete-new-temporal-storm.md`; project-specific gotchas are captured in Claude memory (`imageglass-sdk-tool-integration`, `prodatagrid-aot-warnings`, `avalonia12-window-state-restore`, `aot-publish-link-env`, `aot-crossplatform-app-version`, `exifglass-ui-verify-workflow`).
