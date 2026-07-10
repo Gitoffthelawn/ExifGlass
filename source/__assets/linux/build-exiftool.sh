@@ -24,24 +24,41 @@
 #
 # pp bundles the *host* Perl + native libs, so it can only build for the OS/arch it runs on --
 # build on Linux (a Linux CI runner, or WSL on Windows), per target architecture. Driven by the
-# VS Code "build-exiftool-<rid>" tasks (see .vscode/tasks.json); run it by hand the same way:
+# VS Code "build-exiftool-linux-<arch>" tasks (see ../../.vscode/tasks.json); run it by hand as:
 #
-#   ./build-exiftool.sh <source-dir> <output-binary> [--force]
-#     <source-dir>     dir holding the `exiftool` script + lib/ (…/source/__assets/exiftool/unix)
-#     <output-binary>  path to write the compiled binary (parent dirs are created)
-#     --force          rebuild even if <output-binary> already exists
+#   ./build-exiftool.sh <arch> [--force]
+#     <arch>    target architecture: x64 | arm64 (maps to the linux-<arch> RID)
+#     --force   rebuild even if the output binary already exists
 #
-# Idempotent: skips when <output-binary> already exists (so build/publish tasks that depend on it
-# stay fast), unless --force is passed.
+# Requires PAR::Packer + ExifTool's helper modules. On Debian/Ubuntu (libperl-dev supplies the
+# Perl headers pp links its C loader against -- build-essential alone is not enough):
+#   sudo apt-get install -y perl cpanminus build-essential libperl-dev
+#   sudo cpanm --notest PAR::Packer Archive::Zip Compress::Zlib Digest::SHA \
+#                       IO::Compress::Bzip2 Time::Piece IO::String
+#
+# Source is the shared Perl distribution at __assets/exiftool/unix (the `exiftool` script + lib/).
+# Output is cached per-RID at __assets/exiftool/unix/build/linux-<arch>/exiftool and picked up by
+# ExifGlass.Linux.csproj. Idempotent: skips when the output already exists (so build/publish tasks
+# that depend on it stay fast), unless --force is passed.
 # -----------------------------------------------------------------------------
 set -euo pipefail
 
-SRC="${1:?source dir required (…/__assets/exiftool/unix)}"
-OUT="${2:?output binary path required}"
-FORCE="${3:-}"
+ARCH="${1:?target architecture required: x64 | arm64}"
+FORCE="${2:-}"
+
+case "$ARCH" in
+  x64|arm64) ;;
+  *) echo "ERROR: unsupported architecture '$ARCH' (expected: x64 | arm64)." >&2; exit 1 ;;
+esac
+
+# Resolve paths relative to this script's location: __assets/linux -> __assets -> source.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+SRC="$SOURCE_DIR/__assets/exiftool/unix"
+OUT="$SOURCE_DIR/__assets/exiftool/unix/build/linux-$ARCH/exiftool"
 
 if [ -f "$OUT" ] && [ "$FORCE" != "--force" ]; then
-  echo "ExifTool already built: $OUT  (pass '--force' as the 3rd argument to rebuild)"
+  echo "ExifTool already built: $OUT  (pass '--force' as the 2nd argument to rebuild)"
   exit 0
 fi
 
