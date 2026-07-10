@@ -231,7 +231,7 @@
 
             <Border
                 MaxHeight="80"
-                Background="{DynamicResource SystemControlBackgroundListLowBrush}"
+                Background="{DynamicResource PhCardBackgroundBrush}"
                 CornerRadius="{DynamicResource ControlCornerRadius}"
                 IsVisible="{Binding ShowCommandPreview}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -239,6 +239,7 @@
                         Padding="10,6"
                         FontFamily="Cascadia Mono,Consolas,monospace"
                         FontSize="12"
+                        Opacity="0.6"
                         Text="{Binding CommandPreview}"
                         TextWrapping="Wrap" />
                 </ScrollViewer>

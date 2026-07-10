@@ -16,10 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-using System.Diagnostics.CodeAnalysis;
 using CommunityToolkit.Mvvm.Input;
 using ExifGlass.Helpers;
 using ExifGlass.Services;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ExifGlass.ViewModels;
 
@@ -44,11 +45,44 @@ public sealed partial class AboutViewModel(IDialogService dialogs) : ViewModelBa
     private Task OpenWebsiteAsync() => dialogs.OpenUrlAsync(AppInfo.WebsiteUrl);
 
     [RelayCommand]
-    private Task OpenStoreAsync() => dialogs.OpenUrlAsync(AppInfo.StoreUrl);
+    private Task OpenStoreAsync() => OpenMsStoreAsync();
 
     [RelayCommand]
     private Task CheckForUpdateAsync() => dialogs.CheckForUpdatesInteractiveAsync();
 
     [RelayCommand]
     private void Close() => CloseRequested?.Invoke();
+
+
+    /// <summary>
+    /// Gets app version.
+    /// </summary>
+    public static Version AppVersion { get; } = new(Process.GetCurrentProcess().MainModule?.FileVersionInfo.FileVersion ?? "1.0.0.0");
+
+
+    /// <summary>
+    /// Opens ExifGlass on Microsoft Store.
+    /// </summary>
+    private async Task OpenMsStoreAsync()
+    {
+        var campaignId = $"InAppBadgeV{AppVersion}";
+        var source = "AboutWindow";
+
+        try
+        {
+            var url = $"ms-windows-store://pdp/?productid={AppInfo.MsStoreId}&cid={campaignId}&referrer=appbadge&source={source}";
+
+            await dialogs.OpenUrlAsync(url);
+        }
+        catch
+        {
+            try
+            {
+                var url = $"https://www.microsoft.com/store/productId/{AppInfo.MsStoreId}?cid={campaignId}&referrer=appbadge&source={source}";
+
+                await dialogs.OpenUrlAsync(url);
+            }
+            catch { }
+        }
+    }
 }

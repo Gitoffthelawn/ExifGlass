@@ -32,7 +32,6 @@
         Color="{DynamicResource SystemAccentColor}" />
 
 
-
     <SolidColorBrush
         x:Key="SelectionColorBrush"
         Opacity="0.3"

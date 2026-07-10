@@ -2,7 +2,8 @@
 
     <Style Selector="DataGridRowGroupHeader">
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinHeight" Value="28" />
         <Setter Property="Background" Value="{DynamicResource PhGroupHeaderBackgroundBrush}" />
     </Style>
 

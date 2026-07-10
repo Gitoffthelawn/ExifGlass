@@ -43,24 +43,30 @@ public class StyledWindow : Window
         ActualThemeVariantChanged += (_, _) => UpdateBackground();
     }
 
+
     protected override void OnOpened(EventArgs e)
     {
         base.OnOpened(e);
         UpdateBackground();
     }
 
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == ActualTransparencyLevelProperty)
+        if (change.Property == ActualTransparencyLevelProperty
+            || change.Property == IsActiveProperty)
         {
             UpdateBackground();
         }
     }
 
+
     private void UpdateBackground()
     {
-        if (ActualTransparencyLevel != WindowTransparencyLevel.None)
+        if (ActualTransparencyLevel != WindowTransparencyLevel.None
+            && ActualTransparencyLevel != WindowTransparencyLevel.Transparent
+            && IsActive)
         {
             // A translucent level is active — let it show through.
             Background = Brushes.Transparent;

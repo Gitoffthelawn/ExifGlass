@@ -42,9 +42,9 @@ public static class AppInfo
     public const string ReleasesUrl = "https://github.com/d2phap/ExifGlass/releases";
 
     /// <summary>
-    /// Microsoft Store product page (browser-safe form).
+    /// Microsoft Store ID.
     /// </summary>
-    public const string StoreUrl = "https://www.microsoft.com/store/productId/9MX8S9HZ57W8";
+    public const string MsStoreId = "9MX8S9HZ57W8";
 
     private static string ResolveVersion()
     {

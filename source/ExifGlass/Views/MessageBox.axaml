@@ -12,6 +12,7 @@
     x:DataType="vm:MessageBoxViewModel"
     MinWidth="360"
     MaxWidth="520"
+    CanMinimize="False"
     CanResize="False"
     Icon="/Assets/exifglass_icon_512.ico"
     SizeToContent="WidthAndHeight"
