@@ -42,6 +42,17 @@ public partial class App : Application
     /// </summary>
     public static Func<StartupOptions, string[], IImageSourceHost?>? SourceHostFactory { get; set; }
 
+    /// <summary>
+    /// Optional platform hook returning the OS dark-mode preference (<c>true</c> = dark,
+    /// <c>false</c> = light) synchronously at startup, or <c>null</c> when unknown. Used only for
+    /// <see cref="Core.Models.ThemeMode.Default"/> so the first frame is painted in the right
+    /// variant. The Linux head sets this because its X11 backend resolves the desktop portal's
+    /// color-scheme asynchronously (a frame too late, which flashes light→dark); Windows/macOS
+    /// leave it <c>null</c> and let Avalonia's platform settings decide, which they report
+    /// synchronously.
+    /// </summary>
+    public static Func<bool?>? SystemDarkModeProbe { get; set; }
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);

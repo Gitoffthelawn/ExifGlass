@@ -40,6 +40,12 @@ public class StyledWindow : Window
             WindowTransparencyLevel.None,
         ];
 
+        // Paint the correct theme-aware background up front, before the first frame is
+        // composited. Deferring this to OnOpened/ActualThemeVariantChanged let the window
+        // render one light frame and then flip to dark once its variant resolved — a
+        // jarring light->dark "flash" when launching under a dark theme.
+        UpdateBackground();
+
         ActualThemeVariantChanged += (_, _) => UpdateBackground();
     }
 
@@ -74,7 +80,17 @@ public class StyledWindow : Window
         }
 
         // Solid, theme-aware fallback matching the Fluent light/dark surface colors.
-        var dark = ActualThemeVariant == ThemeVariant.Dark;
+        var dark = ResolvedThemeVariant() == ThemeVariant.Dark;
         Background = new SolidColorBrush(dark ? Color.FromRgb(0x20, 0x20, 0x20) : Color.FromRgb(0xF3, 0xF3, 0xF3));
     }
+
+
+    /// <summary>
+    /// Resolves the theme variant this window should paint for. Prefers the application's
+    /// variant, which is applied before the window is created and so is already resolved
+    /// during construction — the window's own <see cref="ActualThemeVariant"/> still reports
+    /// the default (Light) until it is attached, which would mispaint the first frame.
+    /// </summary>
+    private ThemeVariant ResolvedThemeVariant()
+        => Application.Current?.ActualThemeVariant ?? ActualThemeVariant;
 }

@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using Avalonia;
+using ExifGlass.Helpers;
 
 namespace ExifGlass;
 
@@ -32,6 +33,12 @@ internal class Program
         // launched on the system Perl. A publish produced on a non-Unix host can't carry the Unix
         // executable bit, so set it here before anything tries to run the script.
         EnsureBundledExifToolExecutable();
+
+        // Linux-only startup theme probe: X11 resolves the desktop color-scheme asynchronously,
+        // so Avalonia doesn't know the OS is in dark mode when the first frame is painted, which
+        // flashes light->dark. Reading it synchronously here lets the library pin the correct
+        // variant up front (see App.SystemDarkModeProbe).
+        App.SystemDarkModeProbe = SystemTheme.OsPrefersDark;
 
         // No SourceHostFactory override: this head serves only standalone launches and the
         // ImageGlass 10 SDK tool (--pipe), both built into the library. ImageGlass 9 is Windows-only
