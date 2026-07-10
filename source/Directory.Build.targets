@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <Version>$(ExifGlassVersion)</Version>
+    <AssemblyVersion>$(ExifGlassVersion)</AssemblyVersion>
+    <FileVersion>$(ExifGlassVersion)</FileVersion>
+    <InformationalVersion>$(ExifGlassVersion)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+</Project>

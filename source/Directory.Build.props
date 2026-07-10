@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <!-- Central app version: change ONLY here to update every project and platform head. -->
+    <ExifGlassVersion>2.0.1</ExifGlassVersion>
+
+    <!-- Shared product identity for all assemblies. -->
+    <Authors>Duong Dieu Phap</Authors>
+    <Product>ExifGlass</Product>
+    <Company>Duong Dieu Phap</Company>
+    <Copyright>Copyright © 2023 - 2026 Duong Dieu Phap</Copyright>
+  </PropertyGroup>
+</Project>
