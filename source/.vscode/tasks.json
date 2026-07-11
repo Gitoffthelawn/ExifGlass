@@ -1,0 +1,152 @@
+{
+  // Tasks assume the workspace folder is this `source/` directory. Each task is a thin wrapper
+  // around a platform script under __assets/<platform>/ (grouped: __assets/win, __assets/linux).
+  "version": "2.0.0",
+  "tasks": [
+    // ExifTool: compile the self-contained binary (Perl via PAR::Packer; Linux only), cached and
+    // reused. Prerequisites + usage are documented in __assets/linux/build-exiftool.sh.
+    {
+      "label": "build-exiftool-linux-x64",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/__assets/linux/build-exiftool.sh",
+        "x64"
+      ],
+      "problemMatcher": [],
+      "group": "build"
+    },
+
+
+    // --- Build tasks (Debug) -------------------------------------------------------------------
+    {
+      "label": "build-win-x64",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/__assets/win/build.ps1",
+        "x64"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "build-win-arm64",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/__assets/win/build.ps1",
+        "arm64"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      // Compiles the self-contained ExifTool first, then the app; the csproj bundles that binary.
+      "label": "build-linux-x64",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/__assets/linux/build.sh",
+        "x64"
+      ],
+      "problemMatcher": "$msCompile",
+      "dependsOn": [
+        "build-exiftool-linux-x64"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+
+
+    // --- Publish tasks (Release; self-contained NativeAOT is configured in the csprojs) --------
+    // NativeAOT can't cross-compile, so publish each head on its own OS (Linux/WSL for linux-*).
+    {
+      "label": "publish-win-x64",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/__assets/win/publish.ps1",
+        "x64"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "publish-win-arm64",
+      "type": "process",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/__assets/win/publish.ps1",
+        "arm64"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "publish-linux-x64",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/__assets/linux/publish.sh",
+        "x64"
+      ],
+      "problemMatcher": "$msCompile",
+      "dependsOn": [
+        "build-exiftool-linux-x64"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+
+
+    // Flatpak pack (linux-x64 only): publishes a fresh AOT build, then builds a signed .flatpak.
+    // Outputs to __artifacts/bundle/linux-flatpak. See __assets/linux/flatpak/README.md.
+    {
+      "label": "pack-linux-x64-flatpak",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/__assets/linux/pack-flatpak.sh"
+      ],
+      "options": {
+        "env": {
+          // Prompts on each run; leave blank to build an unsigned bundle.
+          "GPG_KEY": "${input:gpgKey}"
+        }
+      },
+      "problemMatcher": [],
+      "dependsOn": [
+        "build-exiftool-linux-x64"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    }
+  ],
+  "inputs": [
+    {
+      // Used by "pack-linux-x64-flatpak". Not stored on disk -- VS Code only keeps
+      // the last value for the current session. Blank => unsigned bundle.
+      "id": "gpgKey",
+      "type": "promptString",
+      "description": "GPG key (email or key ID) to sign the .flatpak bundle. Leave blank for an unsigned bundle.",
+      "default": ""
+    }
+  ]
+}

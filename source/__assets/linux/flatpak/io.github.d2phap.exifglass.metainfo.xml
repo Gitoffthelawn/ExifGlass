@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.d2phap.exifglass</id>
+  <metadata_license>FSFAP</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+
+  <name>ExifGlass</name>
+  <summary>EXIF Metadata Viewing Tool</summary>
+
+  <description>
+    <p>
+      ExifGlass is a fast, open-source EXIF metadata viewer. It reads the technical
+      details embedded in your photos - camera settings, lens, exposure, GPS location,
+      timestamps, and more - by wrapping the powerful ExifTool by Phil Harvey.
+    </p>
+    <p>
+      Use it standalone via drag-and-drop, the file picker, or a command-line path, or
+      plug it into ImageGlass as an integrated tool that live-updates as you navigate
+      images. Metadata can be copied to the clipboard or exported to a file.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">io.github.d2phap.exifglass.desktop</launchable>
+
+  <screenshots>
+    <!-- Flathub requires every screenshot URL to resolve to a real HTTPS image.
+         Verify/replace this before submitting to Flathub (see README.md). -->
+    <screenshot type="default">
+      <caption>ExifGlass - EXIF Metadata Viewing Tool</caption>
+      <image>https://raw.githubusercontent.com/d2phap/ExifGlass/main/Screenshots/main.png</image>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://github.com/d2phap/ExifGlass</url>
+  <url type="bugtracker">https://github.com/d2phap/ExifGlass/issues</url>
+  <url type="vcs-browser">https://github.com/d2phap/ExifGlass</url>
+
+  <developer id="io.github.d2phap">
+    <name>Duong Dieu Phap</name>
+  </developer>
+
+  <categories>
+    <category>Graphics</category>
+    <category>Viewer</category>
+  </categories>
+
+  <keywords>
+    <keyword>exif</keyword>
+    <keyword>metadata</keyword>
+    <keyword>exiftool</keyword>
+    <keyword>image</keyword>
+    <keyword>photo</keyword>
+  </keywords>
+
+  <content_rating type="oars-1.1" />
+
+  <recommends>
+    <control>keyboard</control>
+    <control>pointing</control>
+  </recommends>
+
+  <releases>
+    <release version="2.0.2" date="2026-07-11">
+      <url>https://github.com/d2phap/ExifGlass/releases</url>
+    </release>
+  </releases>
+</component>

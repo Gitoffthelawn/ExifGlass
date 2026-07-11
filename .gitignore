@@ -60,6 +60,7 @@ BenchmarkDotNet.Artifacts/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+__artifacts/
 
 # StyleCop
 StyleCopReport.xml
@@ -335,3 +336,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+/source/__assets/exiftool/unix
+/source/__assets/exiftool/win
