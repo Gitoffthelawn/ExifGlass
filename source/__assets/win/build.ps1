@@ -28,7 +28,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$SourceDir = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
+$SourceDir = (Resolve-Path (Join-Path (Join-Path $PSScriptRoot '..') '..')).Path
 $Project = Join-Path $SourceDir 'ExifGlass.Win32\ExifGlass.Win32.csproj'
 
 dotnet build $Project `
