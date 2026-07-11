@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AppxManifest template for the ExifGlass Windows head (ExifGlass.Win32).
+
+  The {{...}} placeholders are filled in at pack time by script-pack-win-msix.ps1:
+    {{IDENTITY_NAME}}          package identity name (e.g. DuongDieuPhap.ExifGlass)
+    {{PUBLISHER}}              the EXACT Subject DN of the signing certificate
+                               (or a CN=... placeholder for an unsigned build)
+    {{PUBLISHER_DISPLAY_NAME}} human-readable publisher shown in the installer
+    {{VERSION}}                4-part package version, Major.Minor.Build.0
+    {{ARCH}}                   x64 | arm64
+
+  The unqualified logo names below (e.g. Assets\EXIFGLASS-Square150x150Logo.png)
+  resolve to the scale/targetsize-qualified files in Assets\ via resources.pri,
+  which makepri builds from that folder at pack time. Regenerate the Assets\ set
+  from the app logo with script-generate-msix-assets.ps1.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap3 desktop rescap">
+
+  <Identity Name="{{IDENTITY_NAME}}" Publisher="{{PUBLISHER}}" Version="{{VERSION}}" ProcessorArchitecture="{{ARCH}}" />
+
+  <Properties>
+    <DisplayName>ExifGlass</DisplayName>
+    <PublisherDisplayName>{{PUBLISHER_DISPLAY_NAME}}</PublisherDisplayName>
+    <Description>EXIF Metadata Viewing Tool</Description>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Applications>
+    <Application Id="EXIFGLASS" Executable="ExifGlass\ExifGlass.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        BackgroundColor="transparent"
+        DisplayName="ExifGlass"
+        Square150x150Logo="Assets\EXIFGLASS-Square150x150Logo.png"
+        Square44x44Logo="Assets\EXIFGLASS-Square44x44Logo.png"
+        Description="EXIF Metadata Viewing Tool">
+        <uap:DefaultTile
+          Wide310x150Logo="Assets\EXIFGLASS-Wide310x150Logo.png"
+          Square310x310Logo="Assets\EXIFGLASS-Square310x310Logo.png"
+          Square71x71Logo="Assets\EXIFGLASS-Square71x71Logo.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <uap:Extension Category="windows.fileTypeAssociation" EntryPoint="Windows.FullTrustApplication" Executable="ExifGlass\ExifGlass.exe">
+          <uap:FileTypeAssociation Name="exifglass.assocfiles">
+            <uap:SupportedFileTypes>
+              <uap:FileType>.3fr</uap:FileType>
+              <uap:FileType>.apng</uap:FileType>
+              <uap:FileType>.ari</uap:FileType>
+              <uap:FileType>.arw</uap:FileType>
+              <uap:FileType>.avif</uap:FileType>
+              <uap:FileType>.bay</uap:FileType>
+              <uap:FileType>.bmp</uap:FileType>
+              <uap:FileType>.cap</uap:FileType>
+              <uap:FileType>.cr2</uap:FileType>
+              <uap:FileType>.cr3</uap:FileType>
+              <uap:FileType>.crw</uap:FileType>
+              <uap:FileType>.cur</uap:FileType>
+              <uap:FileType>.dcr</uap:FileType>
+              <uap:FileType>.dcs</uap:FileType>
+              <uap:FileType>.dds</uap:FileType>
+              <uap:FileType>.dib</uap:FileType>
+              <uap:FileType>.dng</uap:FileType>
+              <uap:FileType>.drf</uap:FileType>
+              <uap:FileType>.eip</uap:FileType>
+              <uap:FileType>.emf</uap:FileType>
+              <uap:FileType>.erf</uap:FileType>
+              <uap:FileType>.exif</uap:FileType>
+              <uap:FileType>.exr</uap:FileType>
+              <uap:FileType>.fff</uap:FileType>
+              <uap:FileType>.fits</uap:FileType>
+              <uap:FileType>.flif</uap:FileType>
+              <uap:FileType>.gif</uap:FileType>
+              <uap:FileType>.gpr</uap:FileType>
+              <uap:FileType>.hdp</uap:FileType>
+              <uap:FileType>.hdr</uap:FileType>
+              <uap:FileType>.heic</uap:FileType>
+              <uap:FileType>.heif</uap:FileType>
+              <uap:FileType>.hif</uap:FileType>
+              <uap:FileType>.ico</uap:FileType>
+              <uap:FileType>.iiq</uap:FileType>
+              <uap:FileType>.jfif</uap:FileType>
+              <uap:FileType>.jp2</uap:FileType>
+              <uap:FileType>.jpe</uap:FileType>
+              <uap:FileType>.jpeg</uap:FileType>
+              <uap:FileType>.jpg</uap:FileType>
+              <uap:FileType>.jxl</uap:FileType>
+              <uap:FileType>.jxr</uap:FileType>
+              <uap:FileType>.k25</uap:FileType>
+              <uap:FileType>.kdc</uap:FileType>
+              <uap:FileType>.mdc</uap:FileType>
+              <uap:FileType>.mef</uap:FileType>
+              <uap:FileType>.mos</uap:FileType>
+              <uap:FileType>.mrw</uap:FileType>
+              <uap:FileType>.nef</uap:FileType>
+              <uap:FileType>.nrw</uap:FileType>
+              <uap:FileType>.orf</uap:FileType>
+              <uap:FileType>.pbm</uap:FileType>
+              <uap:FileType>.pcx</uap:FileType>
+              <uap:FileType>.pef</uap:FileType>
+              <uap:FileType>.pgm</uap:FileType>
+              <uap:FileType>.png</uap:FileType>
+              <uap:FileType>.ppm</uap:FileType>
+              <uap:FileType>.psb</uap:FileType>
+              <uap:FileType>.psd</uap:FileType>
+              <uap:FileType>.ptx</uap:FileType>
+              <uap:FileType>.pxn</uap:FileType>
+              <uap:FileType>.qoi</uap:FileType>
+              <uap:FileType>.r3d</uap:FileType>
+              <uap:FileType>.raf</uap:FileType>
+              <uap:FileType>.raw</uap:FileType>
+              <uap:FileType>.rw2</uap:FileType>
+              <uap:FileType>.rwl</uap:FileType>
+              <uap:FileType>.rwz</uap:FileType>
+              <uap:FileType>.sr2</uap:FileType>
+              <uap:FileType>.srf</uap:FileType>
+              <uap:FileType>.srw</uap:FileType>
+              <uap:FileType>.svg</uap:FileType>
+              <uap:FileType>.svgz</uap:FileType>
+              <uap:FileType>.tga</uap:FileType>
+              <uap:FileType>.tif</uap:FileType>
+              <uap:FileType>.tiff</uap:FileType>
+              <uap:FileType>.wdp</uap:FileType>
+              <uap:FileType>.webp</uap:FileType>
+              <uap:FileType>.wmf</uap:FileType>
+              <uap:FileType>.wpg</uap:FileType>
+              <uap:FileType>.x3f</uap:FileType>
+              <uap:FileType>.xbm</uap:FileType>
+              <uap:FileType>.xpm</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+        <desktop:Extension Category="windows.fullTrustProcess" Executable="ExifGlass\ExifGlass.exe" />
+        <uap3:Extension Category="windows.appExecutionAlias" EntryPoint="Windows.FullTrustApplication" Executable="ExifGlass\ExifGlass.exe">
+          <uap3:AppExecutionAlias>
+            <desktop:ExecutionAlias Alias="ExifGlass.exe" />
+          </uap3:AppExecutionAlias>
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <rescap:Capability Name="broadFileSystemAccess" />
+  </Capabilities>
+</Package>
