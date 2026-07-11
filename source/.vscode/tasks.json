@@ -140,11 +140,15 @@
     },
 
 
-    // Windows MSIX pack tasks (sideload / GitHub Releases). Each publishes a fresh
-    // self-contained AOT build, then builds a SIGNED .msix per architecture, with
-    // logo-rendered tile artwork. Built UNSIGNED (with a warning) if no signing
-    // certificate is found. Output: __artifacts/bundle/win/ExifGlass_<version>_win-<arch>.msix
-    // See __assets/win/README.md.
+    // Windows MSIX pack tasks. Each publishes a fresh self-contained AOT build, then
+    // packs the app with logo-rendered tile artwork. See __assets/win/README.md.
+    //
+    //   Self-host (GitHub): a SIGNED .msix per architecture (pack-win-<arch>-msix).
+    //                       Built UNSIGNED (with a warning) if no signing cert is found.
+    //   Microsoft Store:    one UNSIGNED x64+arm64 .msixbundle (pack-win-msstore-msixbundle),
+    //                       Store-reserved identity; the Store re-signs on submission.
+    // Output: __artifacts/bundle/win/ExifGlass_<version>_win-<arch>.msix
+    //         __artifacts/bundle/win/ExifGlass_<version>_win-msstore.msixbundle
     {
       "label": "pack-win-x64-msix",
       "type": "process",
@@ -179,14 +183,20 @@
       "problemMatcher": [],
       "group": "build"
     },
-    // Convenience: build the signed .msix for both architectures.
+    // Microsoft Store: one UNSIGNED .msixbundle (x64 + arm64), Store-reserved identity.
+    // The script builds both architectures, so this does NOT depend on the per-arch tasks.
     {
-      "label": "pack-win-all-msix",
-      "dependsOn": [
-        "pack-win-x64-msix",
-        "pack-win-arm64-msix"
+      "label": "pack-win-msstore-msixbundle",
+      "type": "process",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/__assets/win/pack-msix.ps1",
+        "-MsStore"
       ],
-      "dependsOrder": "sequence",
       "problemMatcher": [],
       "group": "build"
     }

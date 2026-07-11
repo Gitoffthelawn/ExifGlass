@@ -2,18 +2,20 @@
 <!--
   AppxManifest template for the ExifGlass Windows head (ExifGlass.Win32).
 
-  The {{...}} placeholders are filled in at pack time by script-pack-win-msix.ps1:
-    {{IDENTITY_NAME}}          package identity name (e.g. DuongDieuPhap.ExifGlass)
+  The {{...}} placeholders are filled in at pack time by pack-msix.ps1 (which uses
+  either the sideload identity or, with -MsStore, the Microsoft Store identity):
+    {{IDENTITY_NAME}}          package identity name (e.g. DuongDieuPhap.ExifGlass,
+                               or 9662DuongDieuPhap.ExifGlass for the Store)
     {{PUBLISHER}}              the EXACT Subject DN of the signing certificate
-                               (or a CN=... placeholder for an unsigned build)
+                               (or the Store-assigned Publisher for -MsStore)
     {{PUBLISHER_DISPLAY_NAME}} human-readable publisher shown in the installer
-    {{VERSION}}                4-part package version, Major.Minor.Build.0
+    {{VERSION}}                4-part package version, Major.Minor.Build.Revision
     {{ARCH}}                   x64 | arm64
 
   The unqualified logo names below (e.g. Assets\EXIFGLASS-Square150x150Logo.png)
   resolve to the scale/targetsize-qualified files in Assets\ via resources.pri,
   which makepri builds from that folder at pack time. Regenerate the Assets\ set
-  from the app logo with script-generate-msix-assets.ps1.
+  from the app logo with generate-msix-assets.ps1.
 -->
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
