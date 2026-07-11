@@ -3,16 +3,8 @@
   // around a platform script under __assets/<platform>/ (grouped: __assets/win, __assets/linux).
   "version": "2.0.0",
   "tasks": [
-    // --- ExifTool: compile the self-contained binary (Perl embedded via PAR::Packer) -----------
-    // Linux/macOS only -- pp bundles the host Perl and can't cross-build; run these on Linux or WSL
-    // (per target architecture). Requires PAR::Packer + ExifTool's helper modules (libperl-dev
-    // supplies the Perl headers pp links its C loader against; build-essential alone is not enough):
-    //   sudo apt-get install -y perl cpanminus build-essential libperl-dev
-    //   sudo cpanm --notest PAR::Packer Archive::Zip Compress::Zlib Digest::SHA \
-    //                       IO::Compress::Bzip2 Time::Piece IO::String
-    // Output is cached per-RID under __assets/exiftool/unix/build/<rid>/ and picked up by the
-    // matching build/publish task (via ExifGlass.Linux.csproj). Skips if already built; the app
-    // tasks below depend on it, so pass "--force" to build-exiftool.sh by hand to force a rebuild.
+    // ExifTool: compile the self-contained binary (Perl via PAR::Packer; Linux only), cached and
+    // reused. Prerequisites + usage are documented in __assets/linux/build-exiftool.sh.
     {
       "label": "build-exiftool-linux-x64",
       "type": "process",
@@ -20,17 +12,6 @@
       "args": [
         "${workspaceFolder}/__assets/linux/build-exiftool.sh",
         "x64"
-      ],
-      "problemMatcher": [],
-      "group": "build"
-    },
-    {
-      "label": "build-exiftool-linux-arm64",
-      "type": "process",
-      "command": "bash",
-      "args": [
-        "${workspaceFolder}/__assets/linux/build-exiftool.sh",
-        "arm64"
       ],
       "problemMatcher": [],
       "group": "build"
@@ -84,21 +65,6 @@
       "dependsOrder": "sequence",
       "group": "build"
     },
-    {
-      "label": "build-linux-arm64",
-      "type": "process",
-      "command": "bash",
-      "args": [
-        "${workspaceFolder}/__assets/linux/build.sh",
-        "arm64"
-      ],
-      "problemMatcher": "$msCompile",
-      "dependsOn": [
-        "build-exiftool-linux-arm64"
-      ],
-      "dependsOrder": "sequence",
-      "group": "build"
-    },
 
 
     // --- Publish tasks (Release; self-contained NativeAOT is configured in the csprojs) --------
@@ -148,20 +114,43 @@
       "dependsOrder": "sequence",
       "group": "build"
     },
+
+
+    // --- Flatpak pack (Release; linux-x64 only) ------------------------------------------------
+    // Publishes a fresh self-contained AOT build, tars it, then builds a single-file .flatpak
+    // bundle (optionally GPG-signed via the gpgKey prompt) and installs it locally to test.
+    // Outputs to __artifacts/bundle/linux-flatpak. See __assets/linux/flatpak/README.md.
+    // dependsOn build-exiftool-linux-x64 so the self-contained ExifTool is compiled first (the
+    // Flatpak runtime has no system Perl, so the Perl-script fallback can't run in the sandbox).
     {
-      "label": "publish-linux-arm64",
+      "label": "pack-linux-x64-flatpak",
       "type": "process",
       "command": "bash",
       "args": [
-        "${workspaceFolder}/__assets/linux/publish.sh",
-        "arm64"
+        "${workspaceFolder}/__assets/linux/pack-flatpak.sh"
       ],
-      "problemMatcher": "$msCompile",
+      "options": {
+        "env": {
+          // Prompts on each run; leave blank to build an unsigned bundle.
+          "GPG_KEY": "${input:gpgKey}"
+        }
+      },
+      "problemMatcher": [],
       "dependsOn": [
-        "build-exiftool-linux-arm64"
+        "build-exiftool-linux-x64"
       ],
       "dependsOrder": "sequence",
       "group": "build"
+    }
+  ],
+  "inputs": [
+    {
+      // Used by "pack-linux-x64-flatpak". Not stored on disk -- VS Code only keeps
+      // the last value for the current session. Blank => unsigned bundle.
+      "id": "gpgKey",
+      "type": "promptString",
+      "description": "GPG key (email or key ID) to sign the .flatpak bundle. Leave blank for an unsigned bundle.",
+      "default": ""
     }
   ]
 }
