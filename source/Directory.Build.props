@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <!-- Central app version: change ONLY here to update every project and platform head. -->
-    <ExifGlassVersion>2.0.2</ExifGlassVersion>
+    <ExifGlassVersion>2.0.0</ExifGlassVersion>
 
     <!-- Shared product identity for all assemblies. -->
     <Authors>Duong Dieu Phap</Authors>

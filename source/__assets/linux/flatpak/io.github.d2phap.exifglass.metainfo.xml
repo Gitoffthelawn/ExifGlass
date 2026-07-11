@@ -23,11 +23,13 @@
   <launchable type="desktop-id">io.github.d2phap.exifglass.desktop</launchable>
 
   <screenshots>
-    <!-- Flathub requires every screenshot URL to resolve to a real HTTPS image.
-         Verify/replace this before submitting to Flathub (see README.md). -->
     <screenshot type="default">
       <caption>ExifGlass - EXIF Metadata Viewing Tool</caption>
-      <image>https://raw.githubusercontent.com/d2phap/ExifGlass/main/Screenshots/main.png</image>
+      <image>https://raw.githubusercontent.com/d2phap/ExifGlass/refs/heads/main/source/__assets/linux/screenshots/eg_flatpak_1.png</image>
+    </screenshot>
+    <screenshot type="default">
+      <caption>ExifGlass - Works seamlessly with ImageGlass</caption>
+      <image>https://raw.githubusercontent.com/d2phap/ExifGlass/refs/heads/main/source/__assets/linux/screenshots/eg_flatpak_2.png</image>
     </screenshot>
   </screenshots>
 
@@ -58,6 +60,9 @@
     <control>keyboard</control>
     <control>pointing</control>
   </recommends>
+  <supports>
+    <control>touch</control>
+  </supports>
 
   <releases>
     <release version="2.0.2" date="2026-07-11">
