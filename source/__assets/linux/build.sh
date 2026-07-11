@@ -22,14 +22,14 @@
 # first (build-exiftool.sh, or the "build-exiftool-linux-<arch>" VS Code task) so the csproj can
 # bundle it; otherwise it falls back to the Perl script + lib/ (needs system Perl at runtime).
 #
-#   ./build.sh <arch>     <arch>: x64 | arm64  (maps to the linux-<arch> RID)
+#   ./build.sh x64        (x64 is the only supported Linux arch)
 # -----------------------------------------------------------------------------
 set -euo pipefail
 
-ARCH="${1:?target architecture required: x64 | arm64}"
+ARCH="${1:?target architecture required: x64}"
 case "$ARCH" in
-  x64|arm64) ;;
-  *) echo "ERROR: unsupported architecture '$ARCH' (expected: x64 | arm64)." >&2; exit 1 ;;
+  x64) ;;
+  *) echo "ERROR: unsupported architecture '$ARCH' (expected: x64)." >&2; exit 1 ;;
 esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

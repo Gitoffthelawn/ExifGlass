@@ -27,7 +27,7 @@
 # VS Code "build-exiftool-linux-<arch>" tasks (see ../../.vscode/tasks.json); run it by hand as:
 #
 #   ./build-exiftool.sh <arch> [--force]
-#     <arch>    target architecture: x64 | arm64 (maps to the linux-<arch> RID)
+#     x64       the only supported Linux arch (maps to the linux-x64 RID)
 #     --force   rebuild even if the output binary already exists
 #
 # Requires PAR::Packer + ExifTool's helper modules. On Debian/Ubuntu (libperl-dev supplies the
@@ -43,12 +43,12 @@
 # -----------------------------------------------------------------------------
 set -euo pipefail
 
-ARCH="${1:?target architecture required: x64 | arm64}"
+ARCH="${1:?target architecture required: x64}"
 FORCE="${2:-}"
 
 case "$ARCH" in
-  x64|arm64) ;;
-  *) echo "ERROR: unsupported architecture '$ARCH' (expected: x64 | arm64)." >&2; exit 1 ;;
+  x64) ;;
+  *) echo "ERROR: unsupported architecture '$ARCH' (expected: x64)." >&2; exit 1 ;;
 esac
 
 # Resolve paths relative to this script's location: __assets/linux -> __assets -> source.

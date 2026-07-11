@@ -21,9 +21,8 @@ modules:
       - cp -a ExifGlass exiftool libSkiaSharp.so libHarfBuzzSharp.so ${FLATPAK_DEST}/exifglass/
       - cp -a exiftool.LICENSE.txt ${FLATPAK_DEST}/exifglass/ 2>/dev/null || true
       - chmod +x ${FLATPAK_DEST}/exifglass/ExifGlass ${FLATPAK_DEST}/exifglass/exiftool
-      # The bundled ExifTool is a PAR::Packer/Perl binary whose libperl needs libcrypt.so.1
-      # (symbol crypt@XCRYPT_2.0). The runtime ships that lib only as libcrypt.so.2, so bridge
-      # the SONAME with a symlink in /app/lib (on the loader path; see LD_LIBRARY_PATH above).
+      # Bundled ExifTool (PAR/Perl) needs libcrypt.so.1 (crypt@XCRYPT_2.0); the runtime ships only
+      # libcrypt.so.2, so bridge the SONAME in /app/lib (on the loader path; see LD_LIBRARY_PATH).
       - install -d ${FLATPAK_DEST}/lib
       - ln -sf /usr/lib/x86_64-linux-gnu/libcrypt.so.2 ${FLATPAK_DEST}/lib/libcrypt.so.1
       - install -d ${FLATPAK_DEST}/bin

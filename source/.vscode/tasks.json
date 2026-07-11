@@ -116,12 +116,8 @@
     },
 
 
-    // --- Flatpak pack (Release; linux-x64 only) ------------------------------------------------
-    // Publishes a fresh self-contained AOT build, tars it, then builds a single-file .flatpak
-    // bundle (optionally GPG-signed via the gpgKey prompt) and installs it locally to test.
+    // Flatpak pack (linux-x64 only): publishes a fresh AOT build, then builds a signed .flatpak.
     // Outputs to __artifacts/bundle/linux-flatpak. See __assets/linux/flatpak/README.md.
-    // dependsOn build-exiftool-linux-x64 so the self-contained ExifTool is compiled first (the
-    // Flatpak runtime has no system Perl, so the Perl-script fallback can't run in the sandbox).
     {
       "label": "pack-linux-x64-flatpak",
       "type": "process",

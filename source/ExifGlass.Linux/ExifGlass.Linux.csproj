@@ -12,7 +12,7 @@
 
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-    <RuntimeIdentifiers>linux-x64;linux-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>linux-x64</RuntimeIdentifiers>
 
     <!-- NativeAOT + full trimming for fast startup and a small binary. -->
     <PublishAot>true</PublishAot>
