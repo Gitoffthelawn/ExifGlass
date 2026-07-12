@@ -16,10 +16,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using ExifGlass.Composition;
 using ExifGlass.Core.Helpers;
 using ExifGlass.Core.Models;
@@ -108,6 +111,9 @@ public partial class App : Application
                 _services?.Dispose();
             };
 
+            // macOS "Open With" / double-click / dock-drop delivers files here, not as argv.
+            WireFileActivation(vm, window);
+
             // Emit the initial file / connect the pipe. The UI thread is never blocked by pipe IO.
             _host.Start();
 
@@ -131,6 +137,32 @@ public partial class App : Application
             window.Opened -= OnMainWindowOpenedForUpdateCheck;
         }
         _ = _services?.Dialogs.CheckForUpdatesOnStartupAsync();
+    }
+
+    /// <summary>
+    /// Routes OS file-open activations (macOS "Open With" / double-click / dock-drop, which arrive
+    /// through the activatable lifetime rather than argv) into the shared LoadFileAsync seam.
+    /// </summary>
+    private void WireFileActivation(ViewModels.MainWindowViewModel vm, Window window)
+    {
+        if (TryGetFeature(typeof(IActivatableLifetime)) is not IActivatableLifetime activatable) return;
+
+        activatable.Activated += (_, args) =>
+        {
+            if (args is not FileActivatedEventArgs fileArgs) return;
+
+            var path = fileArgs.Files
+                .Select(f => f.TryGetLocalPath())
+                .FirstOrDefault(p => !string.IsNullOrEmpty(p));
+            if (string.IsNullOrEmpty(path)) return;
+
+            // Activation fires on the UI thread, but Post keeps it robust if that ever changes.
+            Dispatcher.UIThread.Post(() =>
+            {
+                BringToFront(window);
+                _ = vm.LoadFileAsync(path);
+            });
+        };
     }
 
     /// <summary>
