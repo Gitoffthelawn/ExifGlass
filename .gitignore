@@ -338,3 +338,4 @@ MigrationBackup/
 .ionide/
 /source/__assets/exiftool/unix
 /source/__assets/exiftool/win
+.DS_Store

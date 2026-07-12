@@ -24,26 +24,27 @@ using Avalonia.Styling;
 namespace ExifGlass.Views;
 
 /// <summary>
-/// Base window with system-integrated translucency. It requests Mica, then Acrylic, then a
-/// solid fallback. When the platform can actually honor a translucent level (Windows 11) the
-/// background is transparent so the effect shows through; otherwise (Linux, older Windows) a
-/// solid, theme-aware background is painted — so no per-OS <c>#if</c> is needed.
+/// Window with system translucency (Mica/Acrylic) and a solid theme-aware fallback;
+/// macOS always stays opaque.
 /// </summary>
 public class StyledWindow : Window
 {
     public StyledWindow()
     {
-        TransparencyLevelHint =
-        [
-            WindowTransparencyLevel.Mica,
-            WindowTransparencyLevel.AcrylicBlur,
-            WindowTransparencyLevel.None,
-        ];
+        // macOS: no translucency, so the solid background below is always painted.
+        TransparencyLevelHint = OperatingSystem.IsMacOS()
+            ?
+            [
+                WindowTransparencyLevel.None,
+            ]
+            :
+            [
+                WindowTransparencyLevel.Mica,
+                WindowTransparencyLevel.AcrylicBlur,
+                WindowTransparencyLevel.None,
+            ];
 
-        // Paint the correct theme-aware background up front, before the first frame is
-        // composited. Deferring this to OnOpened/ActualThemeVariantChanged let the window
-        // render one light frame and then flip to dark once its variant resolved — a
-        // jarring light->dark "flash" when launching under a dark theme.
+        // Paint up front, before the first frame, to avoid a light->dark flash under a dark theme.
         UpdateBackground();
 
         ActualThemeVariantChanged += (_, _) => UpdateBackground();
@@ -86,10 +87,8 @@ public class StyledWindow : Window
 
 
     /// <summary>
-    /// Resolves the theme variant this window should paint for. Prefers the application's
-    /// variant, which is applied before the window is created and so is already resolved
-    /// during construction — the window's own <see cref="ActualThemeVariant"/> still reports
-    /// the default (Light) until it is attached, which would mispaint the first frame.
+    /// Theme variant to paint for. Prefers the app's variant, which is resolved during
+    /// construction (the window's own is still default Light until attached).
     /// </summary>
     private ThemeVariant ResolvedThemeVariant()
         => Application.Current?.ActualThemeVariant ?? ActualThemeVariant;
