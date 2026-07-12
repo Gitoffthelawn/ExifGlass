@@ -13,5 +13,6 @@
   <Project Path="ExifGlass.Lib/ExifGlass.Lib.csproj" />
   <Project Path="ExifGlass.Win32/ExifGlass.Win32.csproj" />
   <Project Path="ExifGlass.Linux/ExifGlass.Linux.csproj" />
+  <Project Path="ExifGlass.Mac/ExifGlass.Mac.csproj" />
   <Project Path="ExifGlass.Lib.Test/ExifGlass.Lib.Test.csproj" />
 </Solution>

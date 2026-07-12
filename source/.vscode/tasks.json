@@ -65,6 +65,19 @@
       "dependsOrder": "sequence",
       "group": "build"
     },
+    {
+      // macOS bundles the ExifTool Perl script + lib/ (PAR binaries can't be notarized), so there
+      // is no build-exiftool step; the csproj bundles the script directly.
+      "label": "build-mac-arm64",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/__assets/mac/build.sh",
+        "arm64"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
 
 
     // --- Publish tasks (Release; self-contained NativeAOT is configured in the csprojs) --------
@@ -110,6 +123,66 @@
       "problemMatcher": "$msCompile",
       "dependsOn": [
         "build-exiftool-linux-x64"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+    {
+      // NativeAOT can't cross-compile, so run on Apple Silicon. Output: __artifacts/publish/osx-arm64.
+      "label": "publish-mac-arm64",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/__assets/mac/publish.sh",
+        "arm64"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+
+
+    // macOS pack tasks. build the .app from a fresh publish, then produce a signed+notarized DMG
+    // (Developer ID / website) or a signed .pkg (Mac App Store). Signing identities and the
+    // notarytool/provisioning credentials are read from env vars (see the scripts' headers).
+    // Output: __artifacts/dist/ExifGlass_<version>_mac-arm64.{dmg,pkg}
+    {
+      "label": "pack-mac-arm64-app",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/__assets/mac/pack-app.sh"
+      ],
+      "problemMatcher": [],
+      "dependsOn": [
+        "publish-mac-arm64"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+    {
+      "label": "pack-mac-arm64-dmg",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/__assets/mac/pack-dmg.sh"
+      ],
+      "problemMatcher": [],
+      "dependsOn": [
+        "pack-mac-arm64-app"
+      ],
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+    {
+      "label": "pack-mac-arm64-pkg-appstore",
+      "type": "process",
+      "command": "bash",
+      "args": [
+        "${workspaceFolder}/__assets/mac/pack-pkg-appstore.sh"
+      ],
+      "problemMatcher": [],
+      "dependsOn": [
+        "pack-mac-arm64-app"
       ],
       "dependsOrder": "sequence",
       "group": "build"

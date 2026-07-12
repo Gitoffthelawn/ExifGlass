@@ -28,7 +28,7 @@ internal class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        // Restore the bundled ExifTool's Unix executable bit (lost on a non-Unix publish host).
+        // Restore the bundled ExifTool script's Unix executable bit (lost on a non-Unix publish host).
         EnsureBundledExifToolExecutable();
 
         // Standalone + ImageGlass 10 (--pipe) only; no SourceHostFactory override.
@@ -46,7 +46,7 @@ internal class Program
             .LogToTrace();
 
     /// <summary>
-    /// Gives the bundled ExifTool binary the Unix executable bit. Best-effort: falls back to a
+    /// Gives the bundled ExifTool script the Unix executable bit. Best-effort: falls back to a
     /// PATH-installed copy if it can't.
     /// </summary>
     private static void EnsureBundledExifToolExecutable()
