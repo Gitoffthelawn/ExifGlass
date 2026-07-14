@@ -1,7 +1,7 @@
 ExifGlass - EXIF Metadata Viewing Tool
 ===
 
-ExifGlass is an EXIF metadata viewing tool, designed to work seamlessly with [ImageGlass - A Fast, Seamless Photo Viewer](https://imageglass.org), but can also be used as a standalone software on your computer. To use ExifGlass, you need to have [ExifTool by Phil Harvey](https://exiftool.org) installed on your system.
+ExifGlass is a cross-platform EXIF metadata viewing tool, designed to work seamlessly with [ImageGlass - A Fast, Seamless Photo Viewer](https://imageglass.org), but can also be used as a standalone software on your computer. To use ExifGlass, you need to have [ExifTool by Phil Harvey](https://exiftool.org) installed on your system.
 
 With ExifGlass, you can easily access a comprehensive overview of the technical details associated with your images, including camera settings, location data, and more. This tool is particularly useful for professional photographers or anyone interested in the technical aspects of digital photography. Whether you use ExifGlass as a standalone software or in conjunction with ImageGlass, it provides a convenient and efficient way to view and manage the metadata associated with your images.
 
@@ -31,23 +31,40 @@ You can download ExifGlass for free. To support the development of ExifGlass and
 | Export as Text, JSON, CSV | ✅ | ✅ |
 | Custom ExifTool's command-line arguments | ✅ | ✅ |
 | .NET self-contained | ✅ | ✅ |
-| Seamless auto-update | ❌ | ✅ |
-| Launch ExifGlass with protocol `exifglass:` | ❌ | ✅ |
-| Launch ExifGlass with command `exifglass` | ❌ | ✅ |
 
 
-## Configure ExifGlass
-ExifGlass comes with a specific version of `exiftool` file. If you want to use a newer ExifTool release, follow these steps:
-1. Download [ExifTool by Phil Harvey](https://exiftool.org). You can also use the [ExifTool Windows Installer](https://oliverbetz.de/pages/Artikel/ExifTool-for-Windows#toc-3) if you prefer, which will automatically register the executable file of ExifTool on your system. ExifGlass can detect it automatically.
-2. If you downloaded the ZIP file, extract its contents into a folder, rename `exiftool(-k).exe` to `exiftool.exe`.
-3. Open ExifGlass Settings (press <kbd>Ctrl+,</kbd>) and go to "Executable path". Locate the `exiftool.exe` file that you extracted in step 2.
-
-
-## Integrate ExifGlass into [ImageGlass 9](https://imageglass.org)
-Please refer to [ImageGlass Docs / ImageGlass tools](https://imageglass.org/docs/imageglass-tools#add-your-tool-to-imageglass).
-
+## Register ExifGlass as external tool in ImageGlass
 > [!TIP]
-> Note that if you have installed [ExifGlass Store](https://www.microsoft.com/store/productId/9MX8S9HZ57W8), you can just use `exifglass` for the `Executable` field.
+> For ImageGlass 9, please refer to [ImageGlass Docs / ImageGlass tools](https://imageglass.org/docs/imageglass-tools#add-your-tool-to-imageglass).
+
+Launch ImageGlass 10, open Settings > Tools, and click "Add" button. In the "Add external tool" window, fill in the below information:
+
+### 🪟 Windows 10/11
+- ID: `Tool_ExifGlass` (you can change the ID)
+- Name: `ExifGlass 2` (you can change the tool name)
+- Integrated with ImageGlass.SDK: check the box
+- Executable: `exifglass` (or the full path of `ExifGlass.exe`)
+- Argument: `<file>`
+- Hotkeys: optional
+
+### 🍎 macOS
+- ID: `Tool_ExifGlass` (you can change the ID)
+- Name: `ExifGlass 2` (you can change the tool name)
+- Integrated with ImageGlass.SDK: check the box
+- Executable: `/Applications/ExifGlass.app`
+- Argument: `<file>`
+- Hotkeys: optional
+
+### 🐧 Linux
+- ID: `Tool_ExifGlass` (you can change the ID)
+- Name: `ExifGlass 2` (you can change the tool name)
+- Integrated with ImageGlass.SDK: check the box
+- Executable: `flatpak`
+- Argument: `run io.github.d2phap.exifglass <file>`
+- Hotkeys: optional
+
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/28c26471-1858-4928-885c-1b1b1cd34793" />
+
 
 
 ## Build ExifGlass from source code
