@@ -60,7 +60,7 @@ VS Code tasks:
 - `pack-win-x64-msix`, `pack-win-arm64-msix` — a signed `.msix` per architecture (GitHub).
 - `pack-win-msstore-msixbundle` — one unsigned `.msixbundle` (x64 + arm64) for the Store.
 
-Output lands in `__artifacts/bundle/win/`:
+Output lands in `__artifacts/bundle/`:
 
 - `ExifGlass_<version>_win-x64.msix` / `..._win-arm64.msix` — signed, for GitHub.
 - `ExifGlass_<version>_win-msstore.msixbundle` — unsigned bundle, for the Store.

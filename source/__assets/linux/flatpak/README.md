@@ -33,7 +33,7 @@ bash __assets/linux/pack-flatpak.sh
 The pack script re-publishes a fresh AOT build every run, so you don't need to run
 `publish-linux-x64` beforehand.
 
-Outputs to `__artifacts/bundle/linux-flatpak/`:
+Outputs to `__artifacts/bundle/`:
 
 - `ExifGlass_<version>_linux_x64.tar.gz` — payload the Flathub manifest points at.
 - `ExifGlass_<version>_linux_x64.flatpak` — single-file bundle for direct install.

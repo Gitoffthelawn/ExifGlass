@@ -45,13 +45,18 @@ SOURCE_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 PUBLISH_DIR="$SOURCE_DIR/__artifacts/publish/linux-x64"
 FLATPAK_DIR="$SOURCE_DIR/__assets/linux/flatpak"
-# The deliverables folder holds ONLY the two shippable artifacts (the .tar.gz + the
-# .flatpak). All intermediate build state (staging dirs, the OSTree repo, the
-# flatpak-builder cache, the exported public key) goes in a separate work dir, kept
-# across runs for its cache, so the output folder stays clean.
-OUT_DIR="$SOURCE_DIR/__artifacts/bundle/linux-flatpak"
-WORK_DIR="$SOURCE_DIR/__artifacts/bundle/.linux-flatpak-work"
+# All final artifacts from every platform land directly in __artifacts/bundle/ (the
+# .tar.gz + .flatpak sit here). Intermediate build state (staging dirs, the OSTree repo,
+# the flatpak-builder cache, the exported public key) goes under __artifacts/staging/
+# and is deleted when the script exits, so bundle/ only ever holds shippable files.
+OUT_DIR="$SOURCE_DIR/__artifacts/bundle"
+STAGING_ROOT="$SOURCE_DIR/__artifacts/staging"
+WORK_DIR="$STAGING_ROOT/linux-flatpak"
 STATE_DIR="$WORK_DIR/.flatpak-builder"
+
+# Remove the whole staging tree on exit (success or failure) so no scratch dir - not even
+# an empty __artifacts/staging/ parent - is left behind.
+trap 'rm -rf "$STAGING_ROOT"' EXIT
 BUILD_PROPS_FILE="$SOURCE_DIR/Directory.Build.props"
 MANIFEST="$FLATPAK_DIR/io.github.d2phap.exifglass.yaml"
 APP_ID="io.github.d2phap.exifglass"
@@ -94,13 +99,13 @@ if [[ ! -f "$EXIFTOOL_BIN" ]]; then
 	exit 1
 fi
 
-# --- Purge legacy build state from the deliverables folder ---
-# Earlier runs of this script wrote intermediate state (staging dirs, the OSTree repo,
-# the flatpak-builder cache, the exported public key) directly into OUT_DIR. Remove any
-# such leftovers so the output folder ends up holding only the .tar.gz + .flatpak.
-# (Current runs keep all state under WORK_DIR instead.)
-rm -rf "$OUT_DIR/stage" "$OUT_DIR/local" "$OUT_DIR/build" "$OUT_DIR/repo" \
-       "$OUT_DIR/.flatpak-builder" "$OUT_DIR/$APP_ID.pubkey.gpg"
+# --- Purge output dirs from earlier layouts ---
+# Earlier runs wrote to a per-platform subfolder (bundle/linux-flatpak/) with a sibling
+# work dir (bundle/.linux-flatpak-work/). Remove both so the flattened bundle/ doesn't
+# carry stale copies. The fresh artifacts are written straight into bundle/ below.
+rm -rf "$SOURCE_DIR/__artifacts/bundle/linux-flatpak" \
+       "$SOURCE_DIR/__artifacts/bundle/.linux-flatpak-work"
+mkdir -p "$OUT_DIR"
 
 # --- Publish a fresh self-contained AOT build ---
 # Always re-publish so the bundle matches the current source and ExifGlassVersion. The
@@ -240,9 +245,10 @@ echo "  Manifest url            : $RELEASE_URL"
 if [[ "$BUNDLE_BUILT" == "1" ]]; then
 	echo "  Bundle (direct install) : $BUNDLE_PATH"
 	# PUBKEY_FILE is only set when signing actually happened (key present in keyring).
+	# The public key is embedded in the .flatpak itself; the exported copy was scratch
+	# and is removed on exit, so point users at gpg rather than a now-deleted file.
 	if [[ -n "${PUBKEY_FILE:-}" ]]; then
-		echo "  Signed with GPG key     : $GPG_KEY"
-		echo "  Embedded public key     : $PUBKEY_FILE"
+		echo "  Signed with GPG key     : $GPG_KEY (public key embedded in the bundle)"
 		echo "  Publish the fingerprint so users can trust the key:"
 		echo "      gpg --fingerprint $GPG_KEY"
 	else

@@ -37,12 +37,17 @@ APP_SIGN_IDENTITY="${APP_SIGN_IDENTITY:-Apple Distribution: Phap Duong (7DV5HBKZ
 INSTALLER_SIGN_IDENTITY="${INSTALLER_SIGN_IDENTITY:-3rd Party Mac Developer Installer: Phap Duong (7DV5HBKZ58)}"
 
 SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-APP_DIR="$SOURCE_DIR/__artifacts/bundle/osx-arm64/ExifGlass.app"
+APP_DIR="$SOURCE_DIR/__artifacts/bundle/ExifGlass.app"
 ENTITLEMENTS_FILE="$SOURCE_DIR/__assets/mac/appstore/ExifGlass.AppStore.entitlements"
 PROVISION_PROFILE="${PROVISION_PROFILE:-$SOURCE_DIR/__assets/mac/appstore/ExifGlass_AppStore.provisionprofile}"
 BUILD_PROPS_FILE="$SOURCE_DIR/Directory.Build.props"
-OUTPUT_DIR="$SOURCE_DIR/__artifacts/dist"
+# All final artifacts share __artifacts/bundle/ (the .pkg lands here alongside the .app).
+OUTPUT_DIR="$SOURCE_DIR/__artifacts/bundle"
 UPLOAD="${UPLOAD:-0}"
+
+# The earlier layout wrote the .pkg into __artifacts/dist/; remove that stale dir so the
+# .pkg only lives in bundle/ from now on.
+rm -rf "$SOURCE_DIR/__artifacts/dist"
 
 # --- Sanity checks -----------------------------------------------------------
 if [[ ! -d "$APP_DIR" ]]; then

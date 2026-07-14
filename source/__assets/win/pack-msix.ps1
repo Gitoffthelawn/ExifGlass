@@ -14,7 +14,7 @@
         the app logo (appxmanifest/Assets). If NO signing certificate is found the
         package is still produced — same identity/artwork — but left UNSIGNED (with a
         warning). Sign it before publishing; an unsigned MSIX cannot be installed.
-        Output: __artifacts/bundle/win/ExifGlass_<version>_win-<arch>.msix
+        Output: __artifacts/bundle/ExifGlass_<version>_win-<arch>.msix
 
     MSSTORE (Microsoft Store):
         The Store re-signs the package on submission, so the bundle is built UNSIGNED.
@@ -23,7 +23,7 @@
         independent of <ExifGlassVersion> and MUST be increased for every Store
         submission. Both x64 and arm64 are built and packed into one .msixbundle
         (Windows installs the architecture matching the device).
-        Output: __artifacts/bundle/win/ExifGlass_<version>_win-msstore.msixbundle
+        Output: __artifacts/bundle/ExifGlass_<version>_win-msstore.msixbundle
 
     Pipeline (per architecture): publish a fresh self-contained NativeAOT build via
     publish.ps1 -> stage <staging>\AppxManifest.xml + \Assets\* + \ExifGlass\<payload>
@@ -140,7 +140,10 @@ $PublishScript   = Join-Path $PSScriptRoot 'publish.ps1'
 $GenAssetsScript = Join-Path $PSScriptRoot 'generate-msix-assets.ps1'
 $ManifestTpl     = Join-Path $PSScriptRoot 'appxmanifest\AppxManifest.xml'
 $AssetsDir       = Join-Path $PSScriptRoot 'appxmanifest\Assets'
-$BundleDir       = Join-Path $SourceDir '__artifacts\bundle\win'
+# All final artifacts land directly in __artifacts\bundle\ (shared across platforms);
+# per-arch scratch stays under __artifacts\staging\ and is removed when packing finishes.
+$BundleDir       = Join-Path $SourceDir '__artifacts\bundle'
+$StagingRoot     = Join-Path $SourceDir '__artifacts\staging'
 
 # --- Helpers -------------------------------------------------------------------
 
@@ -385,6 +388,11 @@ Write-Host "    makepri   : $($script:makepri)"
 if ($script:doSign) { Write-Host "    signtool  : $($script:signtool)" }
 
 # --- Build the package(s) ------------------------------------------------------
+# Flattened layout: artifacts now live directly in bundle\. Drop the old per-arch
+# bundle\win\ subfolder from previous runs so it can't linger with stale packages.
+$legacyWinDir = Join-Path $SourceDir '__artifacts\bundle\win'
+if (Test-Path $legacyWinDir) { Remove-Item $legacyWinDir -Recurse -Force -ErrorAction SilentlyContinue }
+
 New-Item -ItemType Directory -Path $BundleDir -Force | Out-Null
 if (Test-Path $outArtifact) { Remove-Item $outArtifact -Force }
 
@@ -441,4 +449,12 @@ elseif ($script:doSign) {
 else {
     Write-Host '  Signed  : no'
     Write-Host '  Next    : sign the .msix before publishing (an unsigned MSIX cannot be installed).'
+}
+
+# --- Clean up packing scratch --------------------------------------------------
+# Remove the staging tree (per-arch payload layouts, .priconfig, bundle input) so only
+# the final artifact remains under bundle\. Publish output under __artifacts\publish\
+# is left in place (it is the build output, reused via -SkipPublish).
+if (Test-Path $StagingRoot) {
+    Remove-Item $StagingRoot -Recurse -Force -ErrorAction SilentlyContinue
 }

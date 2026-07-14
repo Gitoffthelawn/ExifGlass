@@ -144,7 +144,7 @@
     // macOS pack tasks. build the .app from a fresh publish, then produce a signed+notarized DMG
     // (Developer ID / website) or a signed .pkg (Mac App Store). Signing identities and the
     // notarytool/provisioning credentials are read from env vars (see the scripts' headers).
-    // Output: __artifacts/dist/ExifGlass_<version>_mac-arm64.{dmg,pkg}
+    // Output: __artifacts/bundle/ExifGlass_<version>_mac-arm64.{dmg,pkg} (+ ExifGlass.app)
     {
       "label": "pack-mac-arm64-app",
       "type": "process",
@@ -190,7 +190,7 @@
 
 
     // Flatpak pack (linux-x64 only): publishes a fresh AOT build, then builds a signed .flatpak.
-    // Outputs to __artifacts/bundle/linux-flatpak. See __assets/linux/flatpak/README.md.
+    // Outputs the .flatpak + .tar.gz to __artifacts/bundle/. See __assets/linux/flatpak/README.md.
     {
       "label": "pack-linux-x64-flatpak",
       "type": "process",
@@ -220,8 +220,8 @@
     //                       Built UNSIGNED (with a warning) if no signing cert is found.
     //   Microsoft Store:    one UNSIGNED x64+arm64 .msixbundle (pack-win-msstore-msixbundle),
     //                       Store-reserved identity; the Store re-signs on submission.
-    // Output: __artifacts/bundle/win/ExifGlass_<version>_win-<arch>.msix
-    //         __artifacts/bundle/win/ExifGlass_<version>_win-msstore.msixbundle
+    // Output: __artifacts/bundle/ExifGlass_<version>_win-<arch>.msix
+    //         __artifacts/bundle/ExifGlass_<version>_win-msstore.msixbundle
     {
       "label": "pack-win-x64-msix",
       "type": "process",

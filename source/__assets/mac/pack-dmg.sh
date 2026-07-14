@@ -36,11 +36,20 @@ SIGN_IDENTITY="${SIGN_IDENTITY:-Developer ID Application: Phap Duong (7DV5HBKZ58
 NOTARY_PROFILE="${NOTARY_PROFILE:-exifglass-notary}"
 
 SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-APP_DIR="$SOURCE_DIR/__artifacts/bundle/osx-arm64/ExifGlass.app"
+APP_DIR="$SOURCE_DIR/__artifacts/bundle/ExifGlass.app"
 ENTITLEMENTS_FILE="$SOURCE_DIR/__assets/mac/ExifGlass.entitlements"
 BUILD_PROPS_FILE="$SOURCE_DIR/Directory.Build.props"
-DMG_STAGING_DIR="$SOURCE_DIR/__artifacts/bundle/osx-arm64/dmg-staging"
-OUTPUT_DIR="$SOURCE_DIR/__artifacts/dist"
+# Final artifacts share __artifacts/bundle/; the DMG staging tree is scratch under
+# __artifacts/staging/, whose whole tree is removed on exit (success or failure) so not
+# even an empty __artifacts/staging/ parent is left behind.
+STAGING_ROOT="$SOURCE_DIR/__artifacts/staging"
+DMG_STAGING_DIR="$STAGING_ROOT/mac-dmg"
+OUTPUT_DIR="$SOURCE_DIR/__artifacts/bundle"
+trap 'rm -rf "$STAGING_ROOT"' EXIT
+
+# The earlier layout wrote the .dmg into __artifacts/dist/; remove that stale dir so the
+# .dmg only lives in bundle/ from now on.
+rm -rf "$SOURCE_DIR/__artifacts/dist"
 
 # --- Sanity checks -----------------------------------------------------------
 if [[ ! -d "$APP_DIR" ]]; then

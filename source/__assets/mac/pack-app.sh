@@ -19,13 +19,15 @@
 #
 # -----------------------------------------------------------------------------
 # Assembles ExifGlass.app from the osx-arm64 publish output. Run publish.sh first.
-# Output: __artifacts/bundle/osx-arm64/ExifGlass.app
+# Output: __artifacts/bundle/ExifGlass.app
 # -----------------------------------------------------------------------------
 set -euo pipefail
 
 SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PUBLISH_DIR="$SOURCE_DIR/__artifacts/publish/osx-arm64"
-APP_DIR="$SOURCE_DIR/__artifacts/bundle/osx-arm64/ExifGlass.app"
+# The .app is assembled directly in __artifacts/bundle/, the shared output folder for
+# every platform's final artifacts.
+APP_DIR="$SOURCE_DIR/__artifacts/bundle/ExifGlass.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 BUILD_PROPS_FILE="$SOURCE_DIR/Directory.Build.props"
 ICON_SOURCE_FILE="$SOURCE_DIR/__assets/mac/logo.icns"
@@ -53,6 +55,10 @@ if [[ -d "$APP_DIR" ]]; then
 		exit 1
 	fi
 fi
+
+# Flattened layout: drop the old per-RID subfolder from previous runs so bundle/ isn't
+# left carrying a stale bundle/osx-arm64/ tree.
+rm -rf "$SOURCE_DIR/__artifacts/bundle/osx-arm64"
 
 mkdir -p "$CONTENTS_DIR/MacOS" "$CONTENTS_DIR/Resources"
 cp -R "$PUBLISH_DIR/." "$CONTENTS_DIR/MacOS/"
