@@ -45,10 +45,13 @@ SOURCE_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 PUBLISH_DIR="$SOURCE_DIR/__artifacts/publish/linux-x64"
 FLATPAK_DIR="$SOURCE_DIR/__assets/linux/flatpak"
-# Everything the pack produces lives under one folder (the final .tar.gz + .flatpak
-# sit at its root; build state goes in subdirs).
+# The deliverables folder holds ONLY the two shippable artifacts (the .tar.gz + the
+# .flatpak). All intermediate build state (staging dirs, the OSTree repo, the
+# flatpak-builder cache, the exported public key) goes in a separate work dir, kept
+# across runs for its cache, so the output folder stays clean.
 OUT_DIR="$SOURCE_DIR/__artifacts/bundle/linux-flatpak"
-STATE_DIR="$OUT_DIR/.flatpak-builder"
+WORK_DIR="$SOURCE_DIR/__artifacts/bundle/.linux-flatpak-work"
+STATE_DIR="$WORK_DIR/.flatpak-builder"
 BUILD_PROPS_FILE="$SOURCE_DIR/Directory.Build.props"
 MANIFEST="$FLATPAK_DIR/io.github.d2phap.exifglass.yaml"
 APP_ID="io.github.d2phap.exifglass"
@@ -91,6 +94,14 @@ if [[ ! -f "$EXIFTOOL_BIN" ]]; then
 	exit 1
 fi
 
+# --- Purge legacy build state from the deliverables folder ---
+# Earlier runs of this script wrote intermediate state (staging dirs, the OSTree repo,
+# the flatpak-builder cache, the exported public key) directly into OUT_DIR. Remove any
+# such leftovers so the output folder ends up holding only the .tar.gz + .flatpak.
+# (Current runs keep all state under WORK_DIR instead.)
+rm -rf "$OUT_DIR/stage" "$OUT_DIR/local" "$OUT_DIR/build" "$OUT_DIR/repo" \
+       "$OUT_DIR/.flatpak-builder" "$OUT_DIR/$APP_ID.pubkey.gpg"
+
 # --- Publish a fresh self-contained AOT build ---
 # Always re-publish so the bundle matches the current source and ExifGlassVersion. The
 # version is baked into the binary; packaging a stale publish dir would ship the wrong
@@ -120,7 +131,7 @@ fi
 # Tar with a single top-level "ExifGlass/" dir so the manifest can use
 # strip-components: 1. Exclude debug artifacts that bloat the package.
 echo "==> Staging payload (excluding *.dbg / *.pdb)"
-STAGE_DIR="$OUT_DIR/stage"
+STAGE_DIR="$WORK_DIR/stage"
 rm -rf "$STAGE_DIR"
 mkdir -p "$STAGE_DIR/ExifGlass" "$OUT_DIR"
 ( cd "$PUBLISH_DIR" && cp -a . "$STAGE_DIR/ExifGlass/" )
@@ -158,8 +169,8 @@ else
 
 	# Self-contained staging dir so all manifest sources resolve locally
 	# (the committed metadata files + the freshly built tarball).
-	LOCAL_DIR="$OUT_DIR/local"
-	REPO_DIR="$OUT_DIR/repo"
+	LOCAL_DIR="$WORK_DIR/local"
+	REPO_DIR="$WORK_DIR/repo"
 	rm -rf "$LOCAL_DIR"
 	mkdir -p "$LOCAL_DIR"
 	cp "$FLATPAK_DIR/$APP_ID.desktop" \
@@ -191,7 +202,7 @@ else
 		echo "             gpg --quick-generate-key \"$GPG_KEY\" default default never" >&2
 		echo "         (an EV/code-signing cert is X.509 and cannot be used here - gpg needs its own key)" >&2
 	else
-		PUBKEY_FILE="$OUT_DIR/$APP_ID.pubkey.gpg"
+		PUBKEY_FILE="$WORK_DIR/$APP_ID.pubkey.gpg"
 		echo "==> GPG signing enabled (key: $GPG_KEY) - embedding public key in bundle"
 		# Export the public half (binary, what flatpak --gpg-keys expects). Redirect
 		# instead of --output to avoid gpg's interactive overwrite prompt on re-runs.
@@ -209,7 +220,7 @@ else
 	# cache) - the .flatpak ends up version-stamped new but containing old code.
 	flatpak-builder --state-dir="$STATE_DIR" --user --install --force-clean --disable-cache \
 		--repo="$REPO_DIR" "${GPG_SIGN_ARGS[@]}" \
-		"$OUT_DIR/build" "$LOCAL_DIR/$APP_ID.yaml"
+		"$WORK_DIR/build" "$LOCAL_DIR/$APP_ID.yaml"
 
 	# Single-file bundle for direct download / GitHub Releases. --runtime-repo
 	# lets installers auto-fetch the freedesktop runtime from Flathub.
