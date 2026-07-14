@@ -83,7 +83,7 @@ fi
 # ExifGlass release tags are the bare version (no "v" prefix), matching GitHub Releases.
 RELEASE_TAG="${RELEASE_TAG:-$EXIF_VERSION}"
 TARBALL_NAME="ExifGlass_${EXIF_VERSION}_linux_x64.tar.gz"
-BUNDLE_NAME="ExifGlass_${EXIF_VERSION}_linux_x64.flatpak"
+BUNDLE_NAME="ExifGlass_${EXIF_VERSION}_linux-x64.flatpak"
 TARBALL_PATH="$OUT_DIR/$TARBALL_NAME"
 BUNDLE_PATH="$OUT_DIR/$BUNDLE_NAME"
 RELEASE_URL="https://github.com/d2phap/ExifGlass/releases/download/${RELEASE_TAG}/${TARBALL_NAME}"

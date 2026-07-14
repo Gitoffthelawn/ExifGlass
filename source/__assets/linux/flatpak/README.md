@@ -36,7 +36,7 @@ The pack script re-publishes a fresh AOT build every run, so you don't need to r
 Outputs to `__artifacts/bundle/`:
 
 - `ExifGlass_<version>_linux_x64.tar.gz` — payload the Flathub manifest points at.
-- `ExifGlass_<version>_linux_x64.flatpak` — single-file bundle for direct install.
+- `ExifGlass_<version>_linux-x64.flatpak` — single-file bundle for direct install.
 
 The script also installs the build for your user, so you can test it:
 
@@ -51,7 +51,7 @@ release matching the tag (default `<ExifGlassVersion>`; override with `RELEASE_T
 Users install the bundle directly:
 
 ```bash
-flatpak install --user ExifGlass_<version>_linux_x64.flatpak
+flatpak install --user ExifGlass_<version>_linux-x64.flatpak
 ```
 
 To sign the bundle, generate a key once and pass it via `GPG_KEY` (the VS Code task
