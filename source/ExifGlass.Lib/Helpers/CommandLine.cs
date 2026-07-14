@@ -29,7 +29,7 @@ namespace ExifGlass.Core.Helpers;
 /// <list type="bullet">
 /// <item><c>--pipe</c> or <c>--pipe=&lt;name&gt;</c> — run as an ImageGlass 10 integrated tool.</item>
 /// <item><c>--ig-tool-pipe-code=&lt;code&gt;</c> — run as an ImageGlass 9 external tool.</item>
-/// <item><c>/Key=Value</c> — a config override.</item>
+/// <item><c>-p:Key=Value</c> — a config override.</item>
 /// <item>the first bare token — the file to open (an <c>exifglass:</c> scheme is stripped and URL-decoded).</item>
 /// </list>
 /// </remarks>
@@ -40,6 +40,9 @@ public static class CommandLine
     // The argument ImageGlass 9 passes to an external tool (see ImageGlass.Tools:
     // ImageGlassTool.PIPE_CODE_CMD_LINE). Its presence selects the ImageGlass 9 host.
     private const string ImageGlass9PipeCodeFlag = "--ig-tool-pipe-code=";
+
+    // Prefix for a config override: "-p:Key=Value".
+    private const string ConfigOverridePrefix = "-p:";
 
     private const string SchemePrefix = "exifglass:";
 
@@ -71,10 +74,10 @@ public static class CommandLine
                 continue;
             }
 
-            // Config override: "/Key=Value".
-            if (raw.StartsWith('/'))
+            // Config override: "-p:Key=Value".
+            if (raw.StartsWith(ConfigOverridePrefix, StringComparison.OrdinalIgnoreCase))
             {
-                var body = raw[1..];
+                var body = raw[ConfigOverridePrefix.Length..];
                 var eq = body.IndexOf('=');
                 if (eq > 0)
                 {

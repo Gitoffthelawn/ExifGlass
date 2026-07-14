@@ -46,7 +46,7 @@ dotnet publish ExifGlass.Linux/ExifGlass.Linux.csproj -r linux-x64 -c Release
 # -> ExifGlass.Linux/bin/Release/net10.0/linux-x64/publish/ExifGlass
 ```
 
-Run standalone: `ExifGlass.exe "<image>"`. Force a theme for one run without persisting: `ExifGlass.exe /Theme=Dark "<image>"` (see CLI overrides below). Force-kill leaves the `exiftool -stay_open` child orphaned — clean up with `Get-Process ExifGlass,exiftool | Stop-Process -Force`.
+Run standalone: `ExifGlass.exe "<image>"`. Force a theme for one run without persisting: `ExifGlass.exe -p:Theme=Dark "<image>"` (see CLI overrides below). Force-kill leaves the `exiftool -stay_open` child orphaned — clean up with `Get-Process ExifGlass,exiftool | Stop-Process -Force`.
 
 ## Architecture (the big picture)
 
@@ -79,7 +79,7 @@ To ship a **self-contained `exiftool`** (Perl embedded via PAR::Packer, so end u
 
 **ExifTool access.** `Services/ExifToolService` is the seam (`IExifToolService`); the full read pipeline is documented in **How EXIF metadata loading works** below.
 
-**Settings.** `ISettingsService` holds a mutable `AppConfig`; layered load is defaults → JSON file → CLI `/Key=Value` overrides. Config path is per-OS (`%LOCALAPPDATA%\ExifGlass\exifglass.config.json` on Windows) via `Helpers/AppPaths`. Persisted **only** on window close (`SaveOnClose`) and after an update check (stamps `LastUpdateCheck`).
+**Settings.** `ISettingsService` holds a mutable `AppConfig`; layered load is defaults → JSON file → CLI `-p:Key=Value` overrides. Config path is per-OS (`%LOCALAPPDATA%\ExifGlass\exifglass.config.json` on Windows) via `Helpers/AppPaths`. Persisted **only** on window close (`SaveOnClose`) and after an update check (stamps `LastUpdateCheck`).
 
 ## How EXIF metadata loading works
 
@@ -129,6 +129,6 @@ NativeAOT forbids runtime codegen and trims unused members, so every choice avoi
 ## Verifying UI/behavior changes
 
 `dotnet test` covers the logic, but the grid, dialogs, live navigation, and update flow only manifest in the running app. Launch it (Debug exe at `ExifGlass.Win32/bin/Debug/net10.0-windows/ExifGlass.exe`) and screenshot. Notes:
-- CLI overrides (`/Theme=Dark`, `/CheckForUpdates=false`, `/WindowWidth=900`, …) are in-memory only; config persists solely on window close, so **force-kill** after screenshotting to avoid mutating the user's real config.
+- CLI overrides (`-p:Theme=Dark`, `-p:CheckForUpdates=false`, `-p:WindowWidth=900`, …) are in-memory only; config persists solely on window close, so **force-kill** after screenshotting to avoid mutating the user's real config.
 - The NativeAOT window renders on a GPU surface — GDI `CopyFromScreen` returns black; use `PrintWindow(hwnd, hdc, 2)`.
 - The persistent daemon means a plain force-kill can orphan `exiftool`; sweep both processes afterward.

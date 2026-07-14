@@ -45,7 +45,7 @@ public interface ISettingsService
     void Save();
 
     /// <summary>
-    /// Applies CLI <c>/Key=Value</c> overrides on top of the loaded configuration
+    /// Applies CLI <c>-p:Key=Value</c> overrides on top of the loaded configuration
     /// using an explicit, reflection-free mapping.
     /// </summary>
     void ApplyOverrides(IReadOnlyDictionary<string, string> overrides);

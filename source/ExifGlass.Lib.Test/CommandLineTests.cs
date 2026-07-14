@@ -51,9 +51,9 @@ public class CommandLineTests
     }
 
     [Fact]
-    public void Parse_CollectsSlashKeyValueOverrides()
+    public void Parse_CollectsKeyValueOverrides()
     {
-        var opts = CommandLine.Parse(["/Theme=Dark", "/WindowWidth=900", "photo.jpg"]);
+        var opts = CommandLine.Parse(["-p:Theme=Dark", "-p:WindowWidth=900", "photo.jpg"]);
 
         Assert.Equal("Dark", opts.ConfigOverrides["Theme"]);
         Assert.Equal("900", opts.ConfigOverrides["WindowWidth"]);
@@ -63,14 +63,44 @@ public class CommandLineTests
     [Fact]
     public void Parse_OverrideKeysAreCaseInsensitive()
     {
-        var opts = CommandLine.Parse(["/theme=Light"]);
+        var opts = CommandLine.Parse(["-p:theme=Light"]);
         Assert.Equal("Light", opts.ConfigOverrides["THEME"]);
+    }
+
+    [Fact]
+    public void Parse_TreatsUnixAbsolutePathAsFile()
+    {
+        // A leading '/' is an absolute path, never a config override (those use "-p:").
+        var opts = CommandLine.Parse(["/home/phap/Pictures/test_rgb565.ithmb"]);
+
+        Assert.Equal(AppMode.Standalone, opts.Mode);
+        Assert.Equal("/home/phap/Pictures/test_rgb565.ithmb", opts.InitialFilePath);
+        Assert.Empty(opts.ConfigOverrides);
+    }
+
+    [Fact]
+    public void Parse_TreatsUnixPathContainingEqualsAsFile()
+    {
+        // '=' in a path segment must not turn an absolute path into an override.
+        var opts = CommandLine.Parse(["/home/phap/a=b/photo.jpg"]);
+
+        Assert.Equal("/home/phap/a=b/photo.jpg", opts.InitialFilePath);
+        Assert.Empty(opts.ConfigOverrides);
+    }
+
+    [Fact]
+    public void Parse_StillCollectsOverrideAlongsideUnixPath()
+    {
+        var opts = CommandLine.Parse(["-p:Theme=Dark", "/home/phap/photo.jpg"]);
+
+        Assert.Equal("Dark", opts.ConfigOverrides["Theme"]);
+        Assert.Equal("/home/phap/photo.jpg", opts.InitialFilePath);
     }
 
     [Fact]
     public void Parse_TakesFirstBareTokenAsFile()
     {
-        var opts = CommandLine.Parse(["--pipe", "/Theme=Dark", "first.jpg", "second.jpg"]);
+        var opts = CommandLine.Parse(["--pipe", "-p:Theme=Dark", "first.jpg", "second.jpg"]);
         Assert.Equal("first.jpg", opts.InitialFilePath);
     }
 
