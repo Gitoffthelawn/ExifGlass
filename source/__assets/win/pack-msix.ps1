@@ -81,9 +81,10 @@
     Default: "CN=29F1B9EC-D220-4DC3-BEDB-01A9CCA51904".
 
 .PARAMETER MsStoreVersion
-    4-part version for the Store package. Independent of <ExifGlassVersion> and MUST be
-    bumped for every Store submission (the Store rejects a version <= the last accepted).
-    Default: "1.10.0.0".
+    4-part version for the Store package. Defaults to <ExifGlassVersion>.0 (e.g.
+    2.0.0 -> 2.0.0.0). MUST be bumped for every Store submission (the Store rejects a
+    version <= the last accepted), so pass this explicitly when re-submitting without a
+    <ExifGlassVersion> change.
 
 .PARAMETER SkipPublish
     Reuse the existing __artifacts/publish/win-<arch> output instead of re-publishing
@@ -125,7 +126,8 @@ param(
     # Microsoft Store identity (unsigned build) — reserved values from Partner Center.
     [string]$MsStoreIdentityName = '9662DuongDieuPhap.ExifGlass',
     [string]$MsStorePublisher = 'CN=29F1B9EC-D220-4DC3-BEDB-01A9CCA51904',
-    [string]$MsStoreVersion = '1.10.0.0',
+    # Empty => derive from <ExifGlassVersion> (4-part). Override to re-submit the same version.
+    [string]$MsStoreVersion = '',
 
     [switch]$SkipPublish
 )
@@ -176,6 +178,13 @@ function Get-BuildProp([string]$Tag) {
     $m = Select-String -Path $BuildProps -Pattern "<$Tag>(.*?)</$Tag>" | Select-Object -First 1
     if ($m) { return $m.Matches[0].Groups[1].Value.Trim() }
     return ''
+}
+
+# Expand a version string to the 4-part "a.b.c.d" MSIX packages require (e.g. 2.0.0 -> 2.0.0.0).
+function ConvertTo-FourPartVersion([string]$Version) {
+    $parts = @($Version.Split('.'))
+    while ($parts.Count -lt 4) { $parts += '0' }
+    return ($parts[0..3] -join '.')
 }
 
 # Find a usable signing certificate and report its EXACT Subject DN (needed for the
@@ -317,10 +326,13 @@ if (-not $egVersion) { throw "Could not read <ExifGlassVersion> from $BuildProps
 $script:doSign          = $false
 $script:useMachineStore = $false
 if ($MsStore) {
-    # Microsoft Store: reserved identity, Store version, never signed here.
+    # Microsoft Store: reserved identity, never signed here. Version defaults to
+    # <ExifGlassVersion>.0 (override with -MsStoreVersion to re-submit the same version).
     $script:identityName = $MsStoreIdentityName
     $script:publisher    = $MsStorePublisher
-    $script:pkgVersion   = if ($PackageVersion) { $PackageVersion } else { $MsStoreVersion }
+    $script:pkgVersion   = if ($PackageVersion) { $PackageVersion }
+                           elseif ($MsStoreVersion) { $MsStoreVersion }
+                           else { ConvertTo-FourPartVersion $egVersion }
 }
 else {
     # Sideload / GitHub: plain identity; Publisher = cert Subject when signing.
@@ -329,9 +341,7 @@ else {
         $script:pkgVersion = $PackageVersion
     }
     else {
-        $parts = @($egVersion.Split('.'))
-        while ($parts.Count -lt 4) { $parts += '0' }
-        $script:pkgVersion = ($parts[0..3] -join '.')
+        $script:pkgVersion = ConvertTo-FourPartVersion $egVersion
     }
 
     if ($Sign) {
