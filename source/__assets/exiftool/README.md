@@ -69,7 +69,7 @@ as-is and runs it on the **system Perl** (macOS always has Perl).
 
 > It deliberately does *not* use a PAR-compiled binary like Linux: `pp` staples its
 > archive past the Mach-O's `__LINKEDIT`, which `codesign` rejects — so a PAR binary
-> can't be notarized or shipped via the App Store. This matches ExifTool's own official
+> can't be notarized. This matches ExifTool's own official
 > macOS distribution. `pack-app.sh` relocates the script + `lib/` into
 > `Contents/Resources/` (codesign rejects non-Mach-O under `Contents/MacOS/`) and
 > symlinks `exiftool` back so the resolver finds it.

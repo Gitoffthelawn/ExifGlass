@@ -1,9 +1,9 @@
 {
     "ApiVersion": 1,
-    "Version": "1.10.0.0",
-    "Title": "ExifGlass 1.10",
-    "Description": "- Enjoy the MSIX installer\r\n-Updated the internal ExifTool.exe to v13.40.",
+    "Version": "2.0.0.0",
+    "Title": "ExifGlass 2 - Cross-platform support!",
+    "Description": "- Added support for Windows, macOS and Linux\r\n- Added support for ImageGlass 10\r\n-Updated the internal ExifTool.exe to v13.59.",
     "ChangelogUrl": "https://github.com/d2phap/ExifGlass/releases",
-    "PublishedDate": "2025-10-31T14:24:26",
+    "PublishedDate": "2026-07-15T14:24:26",
     "DownloadUrl": "https://github.com/d2phap/ExifGlass/releases"
 }

@@ -4,7 +4,7 @@
     <ExifGlassVersion>2.0.0.0</ExifGlassVersion>
 
     <!-- App bundle version (store packages). Leave empty to derive from ExifGlassVersion. -->
-    <ExifGlassBundleShortVersion>2.0.2</ExifGlassBundleShortVersion>
+    <ExifGlassBundleShortVersion>2.0.0</ExifGlassBundleShortVersion>
     <!-- App bundle build number (store packages) -->
     <ExifGlassBundleBuild>0</ExifGlassBundleBuild>
 

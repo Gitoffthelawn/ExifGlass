@@ -53,9 +53,8 @@ if [[ -z "$EG_SHORT_VERSION" ]]; then
 	[[ -z "$EG_SHORT_VERSION" ]] && EG_SHORT_VERSION="$EG_VERSION"
 fi
 
-# Build number (CFBundleVersion): at most three integers; must increase with every App
-# Store upload. Prefer the explicit <ExifGlassBundleBuild>; fall back to the last segment
-# of ExifGlassVersion.
+# Build number (CFBundleVersion): at most three integers. Prefer the explicit
+# <ExifGlassBundleBuild>; fall back to the last segment of ExifGlassVersion.
 EG_BUILD="$(sed -n 's:.*<ExifGlassBundleBuild>\(.*\)</ExifGlassBundleBuild>.*:\1:p' "$BUILD_PROPS_FILE" | head -n 1)"
 if [[ -z "$EG_BUILD" ]]; then
 	EG_BUILD="${EG_VERSION##*.}"

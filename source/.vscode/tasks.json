@@ -142,9 +142,9 @@
 
 
     // macOS pack tasks. build the .app from a fresh publish, then produce a signed+notarized DMG
-    // (Developer ID / website) or a signed .pkg (Mac App Store). Signing identities and the
-    // notarytool/provisioning credentials are read from env vars (see the scripts' headers).
-    // Output: __artifacts/bundle/ExifGlass_<version>_mac-arm64.{dmg,pkg} (+ ExifGlass.app)
+    // for GitHub distribution (Developer ID / website). The signing identity and notarytool
+    // credentials are read from env vars (see the scripts' headers).
+    // Output: __artifacts/bundle/ExifGlass_<version>_mac-arm64.dmg (+ ExifGlass.app)
     {
       "label": "pack-mac-arm64-app",
       "type": "process",
@@ -165,20 +165,6 @@
       "command": "bash",
       "args": [
         "${workspaceFolder}/__assets/mac/pack-dmg.sh"
-      ],
-      "problemMatcher": [],
-      "dependsOn": [
-        "pack-mac-arm64-app"
-      ],
-      "dependsOrder": "sequence",
-      "group": "build"
-    },
-    {
-      "label": "pack-mac-arm64-pkg-appstore",
-      "type": "process",
-      "command": "bash",
-      "args": [
-        "${workspaceFolder}/__assets/mac/pack-pkg-appstore.sh"
       ],
       "problemMatcher": [],
       "dependsOn": [
