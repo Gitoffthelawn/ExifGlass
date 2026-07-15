@@ -1,7 +1,12 @@
 <Project>
   <PropertyGroup>
-    <!-- Central app version: change ONLY here to update every project and platform head. -->
+    <!-- App version -->
     <ExifGlassVersion>2.0.0.0</ExifGlassVersion>
+
+    <!-- App bundle version (store packages). Leave empty to derive from ExifGlassVersion. -->
+    <ExifGlassBundleShortVersion>2.0.2</ExifGlassBundleShortVersion>
+    <!-- App bundle build number (store packages) -->
+    <ExifGlassBundleBuild>0</ExifGlassBundleBuild>
 
     <!-- Shared product identity for all assemblies. -->
     <Authors>Duong Dieu Phap</Authors>

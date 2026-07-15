@@ -43,9 +43,24 @@ if [[ -z "$EG_VERSION" ]]; then
 	echo "Error: could not read ExifGlassVersion from $BUILD_PROPS_FILE" >&2
 	exit 1
 fi
-# CFBundleShortVersionString / CFBundleVersion both cap at 3 integers.
-EG_SHORT_VERSION="$(echo "$EG_VERSION" | cut -d. -f1-3)"
-EG_BUILD="$EG_SHORT_VERSION"
+
+# Marketing version (CFBundleShortVersionString): up to 3 integers, e.g. 2.0.0.
+# Prefer the explicit <ExifGlassBundleShortVersion>; fall back to ExifGlassVersion minus
+# its last segment.
+EG_SHORT_VERSION="$(sed -n 's:.*<ExifGlassBundleShortVersion>\(.*\)</ExifGlassBundleShortVersion>.*:\1:p' "$BUILD_PROPS_FILE" | head -n 1)"
+if [[ -z "$EG_SHORT_VERSION" ]]; then
+	EG_SHORT_VERSION="${EG_VERSION%.*}"
+	[[ -z "$EG_SHORT_VERSION" ]] && EG_SHORT_VERSION="$EG_VERSION"
+fi
+
+# Build number (CFBundleVersion): at most three integers; must increase with every App
+# Store upload. Prefer the explicit <ExifGlassBundleBuild>; fall back to the last segment
+# of ExifGlassVersion.
+EG_BUILD="$(sed -n 's:.*<ExifGlassBundleBuild>\(.*\)</ExifGlassBundleBuild>.*:\1:p' "$BUILD_PROPS_FILE" | head -n 1)"
+if [[ -z "$EG_BUILD" ]]; then
+	EG_BUILD="${EG_VERSION##*.}"
+	[[ -z "$EG_BUILD" ]] && EG_BUILD="$EG_VERSION"
+fi
 
 # Remove any previous bundle (surface a clear message if a prior sudo run left it root-owned).
 if [[ -d "$APP_DIR" ]]; then

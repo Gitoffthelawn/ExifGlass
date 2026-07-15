@@ -76,14 +76,14 @@ submission.
 
 ## Notes
 
-- **Version.**
-  - *Signed:* the package version is `<ExifGlassVersion>` padded to 4 parts
-    (`2.0.0` → `2.0.0.0`). The output file name uses the bare `<ExifGlassVersion>`.
-  - *msstore:* the package version is **`-MsStoreVersion`** (default `1.10.0.0`),
-    which is **independent of `<ExifGlassVersion>`** and lives on the Store's own
-    version track. It **MUST be bumped for every Store submission** — the Store rejects
-    a version `<=` the last accepted one. Bump the default in `pack-msix.ps1` (or pass
-    `-MsStoreVersion` / `-PackageVersion`).
+- **Version.** Both flavours stamp the same 4-part package version:
+  `<Major>.<Minor>.<ExifGlassBundleBuild>.0`, where `<Major>.<Minor>` comes from
+  `<ExifGlassBundleShortVersion>` (e.g. short `2.0.0` + build `1` → `2.0.1.0`). The 4th
+  (revision) part is `0` because the Store reserves it; the build number lives in the 3rd
+  part. The output file name uses the bare `<ExifGlassVersion>`.
+  - The Store **rejects a version `<=` the last accepted one**, so **bump
+    `<ExifGlassBundleBuild>` for every Store submission** (or re-release without changing
+    the app version). Override the whole version with `-PackageVersion` if needed.
 - **Publisher must match the certificate (signed).** The script reads the certificate's
   exact Subject DN and writes it into the manifest `Publisher`; a mismatch makes the
   package un-installable. With no certificate, a placeholder `CN=Duong Dieu Phap` is used

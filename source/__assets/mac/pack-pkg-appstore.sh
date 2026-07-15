@@ -78,6 +78,8 @@ if [[ -z "$EG_VERSION" ]]; then
 	exit 1
 fi
 
+# CFBundleVersion (the App-Store build number) is baked into the .app by pack-app.sh from
+# <ExifGlassBundleBuild>; bump that alone to re-submit without changing the app version.
 PKG_PATH="$OUTPUT_DIR/ExifGlass_${EG_VERSION}_mac-arm64.pkg"
 
 echo "==> Packaging ExifGlass $EG_VERSION (arm64) for the Mac App Store"

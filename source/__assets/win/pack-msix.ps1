@@ -19,8 +19,8 @@
     MSSTORE (Microsoft Store):
         The Store re-signs the package on submission, so the bundle is built UNSIGNED.
         It carries the Store-reserved Identity (-MsStoreIdentityName / -MsStorePublisher
-        assigned by Partner Center) and its own version (-MsStoreVersion), which is
-        independent of <ExifGlassVersion> and MUST be increased for every Store
+        assigned by Partner Center) and the package version's 3rd part (<ExifGlassBundleBuild>),
+        which is independent of the app version and MUST be increased for every Store
         submission. Both x64 and arm64 are built and packed into one .msixbundle
         (Windows installs the architecture matching the device).
         Output: __artifacts/bundle/ExifGlass_<version>_win-msstore.msixbundle
@@ -63,8 +63,9 @@
     RFC-3161 timestamp server. Default: http://timestamp.sectigo.com
 
 .PARAMETER PackageVersion
-    Override the 4-part package version. Defaults to <ExifGlassVersion>.0 (signed
-    flavour, e.g. 2.0.0 -> 2.0.0.0) or -MsStoreVersion (msstore flavour).
+    Override the 4-part package version for all flavours. Defaults to
+    <Major>.<Minor>.<ExifGlassBundleBuild>.0 derived from Directory.Build.props
+    (e.g. short=2.0.0 + build=1 -> 2.0.1.0).
 
 .PARAMETER IdentityName
     Signed-flavour package Identity Name. Default: "DuongDieuPhap.ExifGlass".
@@ -79,12 +80,6 @@
 .PARAMETER MsStorePublisher
     Microsoft-Store-assigned Publisher (from Partner Center).
     Default: "CN=29F1B9EC-D220-4DC3-BEDB-01A9CCA51904".
-
-.PARAMETER MsStoreVersion
-    4-part version for the Store package. Defaults to <ExifGlassVersion>.0 (e.g.
-    2.0.0 -> 2.0.0.0). MUST be bumped for every Store submission (the Store rejects a
-    version <= the last accepted), so pass this explicitly when re-submitting without a
-    <ExifGlassVersion> change.
 
 .PARAMETER SkipPublish
     Reuse the existing __artifacts/publish/win-<arch> output instead of re-publishing
@@ -126,8 +121,6 @@ param(
     # Microsoft Store identity (unsigned build) — reserved values from Partner Center.
     [string]$MsStoreIdentityName = '9662DuongDieuPhap.ExifGlass',
     [string]$MsStorePublisher = 'CN=29F1B9EC-D220-4DC3-BEDB-01A9CCA51904',
-    # Empty => derive from <ExifGlassVersion> (4-part). Override to re-submit the same version.
-    [string]$MsStoreVersion = '',
 
     [switch]$SkipPublish
 )
@@ -178,13 +171,6 @@ function Get-BuildProp([string]$Tag) {
     $m = Select-String -Path $BuildProps -Pattern "<$Tag>(.*?)</$Tag>" | Select-Object -First 1
     if ($m) { return $m.Matches[0].Groups[1].Value.Trim() }
     return ''
-}
-
-# Expand a version string to the 4-part "a.b.c.d" MSIX packages require (e.g. 2.0.0 -> 2.0.0.0).
-function ConvertTo-FourPartVersion([string]$Version) {
-    $parts = @($Version.Split('.'))
-    while ($parts.Count -lt 4) { $parts += '0' }
-    return ($parts[0..3] -join '.')
 }
 
 # Find a usable signing certificate and report its EXACT Subject DN (needed for the
@@ -319,30 +305,41 @@ function New-MsixPackage([string]$Arch, [string]$OutMsixPath) {
 }
 
 # --- Version -------------------------------------------------------------------
+# $egVersion = the app version (used for artifact filenames).
+# $pkgVersion = the 4-part package Version stamped into every flavour's manifest:
+#   Major.Minor (from <ExifGlassBundleShortVersion>) . <ExifGlassBundleBuild> . 0
+#   e.g. short=2.0.0 + build=1 -> 2.0.1.0. The 4th (revision) part is 0 (the Store
+#   reserves it); the build lives in the 3rd part, so bump <ExifGlassBundleBuild>
+#   alone to re-release/re-submit a package without changing the app version.
 $egVersion = Get-BuildProp 'ExifGlassVersion'
 if (-not $egVersion) { throw "Could not read <ExifGlassVersion> from $BuildProps" }
 
-# --- Flavour: identity / publisher / version / signing -------------------------
+if ($PackageVersion) {
+    $script:pkgVersion = $PackageVersion
+}
+else {
+    $shortVer = Get-BuildProp 'ExifGlassBundleShortVersion'
+    if (-not $shortVer) { $shortVer = $egVersion }
+    $bundleBuild = Get-BuildProp 'ExifGlassBundleBuild'
+    if (-not $bundleBuild) { $bundleBuild = '0' }
+
+    $sp    = $shortVer.Split('.')
+    $major = $sp[0]
+    $minor = if ($sp.Count -gt 1) { $sp[1] } else { '0' }
+    $script:pkgVersion = "$major.$minor.$bundleBuild.0"
+}
+
+# --- Flavour: identity / publisher / signing -----------------------------------
 $script:doSign          = $false
 $script:useMachineStore = $false
 if ($MsStore) {
-    # Microsoft Store: reserved identity, never signed here. Version defaults to
-    # <ExifGlassVersion>.0 (override with -MsStoreVersion to re-submit the same version).
+    # Microsoft Store: reserved identity, never signed here.
     $script:identityName = $MsStoreIdentityName
     $script:publisher    = $MsStorePublisher
-    $script:pkgVersion   = if ($PackageVersion) { $PackageVersion }
-                           elseif ($MsStoreVersion) { $MsStoreVersion }
-                           else { ConvertTo-FourPartVersion $egVersion }
 }
 else {
     # Sideload / GitHub: plain identity; Publisher = cert Subject when signing.
     $script:identityName = $IdentityName
-    if ($PackageVersion) {
-        $script:pkgVersion = $PackageVersion
-    }
-    else {
-        $script:pkgVersion = ConvertTo-FourPartVersion $egVersion
-    }
 
     if ($Sign) {
         $cert = Resolve-SigningCert
@@ -450,7 +447,7 @@ Write-Host "  Package : $outArtifact"
 if ($MsStore) {
     Write-Host '  Signed  : no (the Microsoft Store signs it on submission)'
     Write-Host '  Next    : upload to Partner Center (Microsoft Store) as-is.'
-    Write-Host '            Do NOT sign this msstore bundle yourself. Bump -MsStoreVersion next submission.'
+    Write-Host '            Do NOT sign this msstore bundle yourself. Bump <ExifGlassBundleBuild> next submission.'
 }
 elseif ($script:doSign) {
     Write-Host '  Signed  : yes (payload binaries + package)'
